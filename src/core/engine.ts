@@ -1,11 +1,15 @@
+import {Timer} from './timer';
+
 import {
+    FrameData,
     InitializeParams,
     Resolution,
-    onDisposeData,
+    onDestroyData,
     onInitData,
     onLateUpdateData,
     onRenderData,
     onResizeData,
+    onQuitData,
     onStartData,
     onUpdateData,
 } from './engine.interface';
@@ -25,9 +29,13 @@ class Engine {
         return this.#resolution;
     }
 
+    private timer!: Timer;
+
+    private frameData!: FrameData;
+
+    private isActive: boolean = false;
     private needsResize: boolean = false;
     private isInitialized: boolean = false;
-    private isRunning: boolean = false;
 
     public onInit: (data: onInitData) => void = data => {};
     public onStart: (data: onStartData) => void = data => {};
@@ -35,7 +43,8 @@ class Engine {
     public onUpdate: (data: onUpdateData) => void = data => {};
     public onLateUpdate: (data: onLateUpdateData) => void = data => {};
     public onRender: (data: onRenderData) => void = data => {};
-    public onDispose: (data: onDisposeData) => void = data => {};
+    public onQuit: (data: onQuitData) => void = data => {};
+    public onDestroy: (data: onDestroyData) => void = data => {};
 
     public async initialize(params: InitializeParams = {}) {
         if (this.isInitialized) throw new Error(ERR_IS_INITIALIZED);
@@ -55,18 +64,30 @@ class Engine {
 
     public async run() {
         if (!this.isInitialized) throw new Error(ERR_NOT_INITIALIZED);
-        if (this.isRunning) throw new Error(ERR_IS_RUNNING);
-        this.isRunning = true;
+        if (this.isActive) throw new Error(ERR_IS_RUNNING);
+
         this.start();
+
+        return new Promise<void>(resolve => {
+            const doShutdown = () => {
+                this.shutdown();
+                resolve();
+            };
+
+            window.addEventListener('keydown', event => {
+                if (event.key === 'Escape') doShutdown();
+            });
+        });
     }
 
-    public async destroy() {
-        this.isRunning = false;
-        this.dispose();
+    public shutdown() {
+        this.quit();
     }
 
     private start() {
+        this.isActive = true;
         this.needsResize = true;
+        this.timer.start();
         this.onStart({});
         window.requestAnimationFrame(() => {
             this.tick();
@@ -74,10 +95,13 @@ class Engine {
     }
 
     private tick() {
+        this.timer.tick();
+
         this.update();
         this.lateUpdate();
         this.render();
-        if (this.isRunning) {
+
+        if (this.isActive) {
             window.requestAnimationFrame(() => {
                 this.tick();
             });
@@ -89,16 +113,16 @@ class Engine {
 
         const width = window.innerWidth;
         const height = window.innerHeight;
-        const aspect = this.#resolution.aspectRatio;
-        const ratio = this.#resolution.devicePixelRatio;
+        const aspectRatio = this.#resolution.aspectRatio;
+        const devicePixelRatio = this.#resolution.devicePixelRatio;
 
         const DIM = {
-            width: height * aspect >= width ? width : height * aspect,
-            height: width / aspect >= height ? height : width / aspect,
+            width: height * aspectRatio >= width ? width : height * aspectRatio,
+            height: width / aspectRatio >= height ? height : width / aspectRatio,
         };
 
-        this.#resolution.width = DIM.width * ratio;
-        this.#resolution.height = DIM.height * ratio;
+        this.#resolution.width = DIM.width * devicePixelRatio;
+        this.#resolution.height = DIM.height * devicePixelRatio;
 
         this.#canvas.width = this.#resolution.width;
         this.#canvas.height = this.#resolution.height;
@@ -110,7 +134,14 @@ class Engine {
 
     private update() {
         if (this.needsResize) this.resize();
-        this.onUpdate({});
+
+        this.frameData = {
+            deltaTime: this.timer.delta,
+            elapsedTime: this.timer.elapsed,
+            resolution: this.resolution,
+        };
+
+        this.onUpdate(this.frameData);
     }
 
     private lateUpdate() {
@@ -118,11 +149,18 @@ class Engine {
     }
 
     private render() {
-        this.onRender({});
+        this.onRender(this.frameData);
     }
 
-    private dispose() {
-        this.onDispose({});
+    private quit() {
+        this.isActive = false;
+        this.onQuit({});
+        this.destroy();
+    }
+
+    private destroy() {
+        this.onDestroy({});
+        this.#canvas?.remove();
     }
 }
 
