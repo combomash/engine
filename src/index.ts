@@ -1,2 +1,1 @@
-import {Engine} from './engine';
-export default Engine;
+export {Engine} from './core/engine';
