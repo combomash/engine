@@ -1,6 +1,6 @@
 # @combomash/engine
 
-An opinionated TypeScript engine for constructing and orchestrating canvas-based render pipelines, agnostic to the web rendering techniques employed (e.g., ThreeJS, WebGL, WebGPU, P5). It supports real-time interactivity, frame-based outputs, bucketed and/or progressive methods, and multi-pass rendering via a node-based workflow. The engine aims to provide a foundation for crafting deterministic generative artworks, procedural products, and engaging web-based experiences.
+An opinionated TypeScript engine for constructing and orchestrating canvas-based render pipelines, agnostic to the web rendering techniques employed (e.g., ThreeJS, WebGL, WebGPU, P5). It supports real-time interactive webapps, frame-based outputs, bucketed and/or progressive methods, and multi-pass rendering via a node-based architecture. The engine aims to provide a foundation for crafting deterministic generative artworks, procedural artifacts, and web-based experiences.
 
 ## v0.0.x (Alpha)
 
