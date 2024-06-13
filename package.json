@@ -16,10 +16,10 @@
     ],
     "author": "Owen Moore | OWMO Studio LTD <hello@owmo.studio>",
     "scripts": {
-        "dev": "jest --watchAll",
+        "dev": "jest --watchAll --verbose",
         "dev-build": "tsup --watch",
         "build": "jest && tsup --minify",
-        "test": "jest"
+        "test": "jest --verbose"
     },
     "repository": {
         "type": "git",
