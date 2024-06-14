@@ -1,5 +1,5 @@
 import {Engine} from '../src';
-import {ERR_NOT_INITIALIZED} from '../src/core/engine.errors';
+import * as ERR from '../src/core/engine.errors';
 
 describe('Engine', () => {
     let engine: Engine | null;
@@ -25,7 +25,7 @@ describe('Engine', () => {
         });
 
         test('calling run() should error', async () => {
-            await expect(engine!.run()).rejects.toThrow(ERR_NOT_INITIALIZED);
+            await expect(engine!.run()).rejects.toThrow(ERR.NOT_INITIALIZED);
         });
     });
 

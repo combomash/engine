@@ -6,7 +6,7 @@ export class Timer {
     #delta: number = 0;
     #elapsed: number = 0;
 
-    private constructor() {
+    constructor() {
         if (typeof document !== 'undefined' && document.hidden !== undefined) {
             document.addEventListener(
                 'visibilitychange',
@@ -21,10 +21,6 @@ export class Timer {
     }
 
     public static now = () => (typeof performance === 'undefined' ? Date : performance).now();
-
-    public static create() {
-        return new Timer();
-    }
 
     public get isActive() {
         return this.#isActive;

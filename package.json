@@ -16,8 +16,8 @@
     ],
     "author": "Owen Moore | OWMO Studio LTD <hello@owmo.studio>",
     "scripts": {
-        "dev": "jest --watchAll --verbose",
-        "dev-build": "tsup --watch",
+        "dev": "tsup --watch",
+        "dev-test": "jest --watchAll --verbose",
         "build": "jest && tsup --minify",
         "test": "jest --verbose"
     },

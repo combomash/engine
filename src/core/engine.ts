@@ -1,20 +1,7 @@
 import {Timer} from './timer';
-
-import {
-    FrameData,
-    InitializeParams,
-    Resolution,
-    onDestroyData,
-    onInitData,
-    onLateUpdateData,
-    onRenderData,
-    onResizeData,
-    onQuitData,
-    onStartData,
-    onUpdateData,
-} from './engine.interface';
-
-import {ERR_IS_INITIALIZED, ERR_NOT_INITIALIZED, ERR_IS_RUNNING} from './engine.errors';
+import {Utils} from '../helpers/utils';
+import * as I from './engine.interface';
+import * as ERROR from './engine.errors';
 
 class Engine {
     constructor() {}
@@ -24,30 +11,54 @@ class Engine {
         return this.#canvas;
     }
 
-    #resolution!: Resolution;
+    #resolution!: I.Resolution;
     get resolution() {
         return this.#resolution;
     }
 
     private timer!: Timer;
 
-    private frameData!: FrameData;
+    private frameData!: I.FrameData;
 
     private isActive: boolean = false;
     private needsResize: boolean = false;
     private isInitialized: boolean = false;
 
-    public onInit: (data: onInitData) => void = data => {};
-    public onStart: (data: onStartData) => void = data => {};
-    public onResize: (data: onResizeData) => void = data => {};
-    public onUpdate: (data: onUpdateData) => void = data => {};
-    public onLateUpdate: (data: onLateUpdateData) => void = data => {};
-    public onRender: (data: onRenderData) => void = data => {};
-    public onQuit: (data: onQuitData) => void = data => {};
-    public onDestroy: (data: onDestroyData) => void = data => {};
+    public onInit: (data: I.onInitData) => void = data => {};
+    public onStart: (data: I.onStartData) => void = data => {};
+    public onResize: (data: I.onResizeData) => void = data => {};
+    public onUpdate: (data: I.onUpdateData) => void = data => {};
+    public onLateUpdate: (data: I.onLateUpdateData) => void = data => {};
+    public onRender: (data: I.onRenderData) => void = data => {};
+    public onQuit: (data: I.onQuitData) => void = data => {};
+    public onDestroy: (data: I.onDestroyData) => void = data => {};
 
-    public async initialize(params: InitializeParams = {}) {
-        if (this.isInitialized) throw new Error(ERR_IS_INITIALIZED);
+    public async initialize(params: I.InitializeParams = {}) {
+        if (this.isInitialized) throw new Error(ERROR.IS_INITIALIZED);
+
+        const style = document.createElement('style');
+        style.innerHTML = `
+        * {
+            margin: 0;
+            padding: 0;
+            overflow: clip;
+            background: #000;
+            height: 100%;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        `;
+        document.body.appendChild(style);
+
+        window.addEventListener(
+            'resize',
+            Utils.debounce(() => {
+                this.needsResize = true;
+            }, 300),
+        );
 
         this.#canvas = params.canvas ?? document.createElement('canvas');
         document.body.appendChild(this.#canvas);
@@ -59,12 +70,16 @@ class Engine {
             devicePixelRatio: params.devicePixelRatio ?? 1,
         };
 
+        this.timer = new Timer();
+
+        this.isInitialized = true;
+
         this.onInit({});
     }
 
     public async run() {
-        if (!this.isInitialized) throw new Error(ERR_NOT_INITIALIZED);
-        if (this.isActive) throw new Error(ERR_IS_RUNNING);
+        if (!this.isInitialized) throw new Error(ERROR.NOT_INITIALIZED);
+        if (this.isActive) throw new Error(ERROR.IS_RUNNING);
 
         this.start();
 
@@ -159,8 +174,8 @@ class Engine {
     }
 
     private destroy() {
-        this.onDestroy({});
         this.#canvas?.remove();
+        this.onDestroy({});
     }
 }
 

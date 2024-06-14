@@ -18,7 +18,7 @@ describe('Timer', () => {
     });
 
     test('calling the create() method returns a Timer object', () => {
-        timer = Timer.create();
+        timer = new Timer();
         expect(timer).toBeInstanceOf(Timer);
     });
 
