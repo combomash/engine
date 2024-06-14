@@ -11,6 +11,12 @@ export interface Resolution {
     devicePixelRatio: number;
 }
 
+export interface FrameData {
+    deltaTime: number;
+    elapsedTime: number;
+    resolution: Resolution;
+}
+
 export interface onInitData {}
 
 export interface onStartData {}
@@ -19,10 +25,12 @@ export interface onResizeData {
     resolution: Resolution;
 }
 
-export interface onUpdateData {}
+export interface onUpdateData extends FrameData {}
 
 export interface onLateUpdateData {}
 
-export interface onRenderData {}
+export interface onRenderData extends FrameData {}
 
-export interface onDisposeData {}
+export interface onQuitData {}
+
+export interface onDestroyData {}

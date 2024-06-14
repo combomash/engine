@@ -1,7 +1,7 @@
 {
     "name": "@combomash/engine",
     "description": "An opinionated TypeScript engine for orchestrating canvas-based render pipelines, supporting diverse web rendering techniques and enabling real-time interactivity, multi-pass rendering, and procedural art creation.",
-    "version": "0.0.0",
+    "version": "0.1.0",
     "main": "dist/index.js",
     "module": "dist/index.mjs",
     "types": "dist/index.d.ts",
@@ -16,10 +16,10 @@
     ],
     "author": "Owen Moore | OWMO Studio LTD <hello@owmo.studio>",
     "scripts": {
-        "dev": "jest --watchAll",
-        "dev-build": "tsup --watch",
+        "dev": "tsup --watch",
+        "dev-test": "jest --watchAll --verbose",
         "build": "jest && tsup --minify",
-        "test": "jest"
+        "test": "jest --verbose"
     },
     "repository": {
         "type": "git",
