@@ -1,7 +1,9 @@
 import {Clock} from './clock';
 import {Utils} from '../helpers/utils';
+import {EntityManager} from './entity-manager';
+
 import * as I from './engine.interface';
-import * as ERROR from './engine.errors';
+import * as E from './engine.errors';
 
 class Engine {
     constructor() {}
@@ -17,24 +19,16 @@ class Engine {
     }
 
     private clock!: Clock;
-
-    private frameData!: I.FrameData;
+    private frameData!: I.FrameParams;
 
     private isActive: boolean = false;
     private needsResize: boolean = false;
     private isInitialized: boolean = false;
 
-    public onInit: (data: I.onInitData) => void = data => {};
-    public onStart: (data: I.onStartData) => void = data => {};
-    public onResize: (data: I.onResizeData) => void = data => {};
-    public onUpdate: (data: I.onUpdateData) => void = data => {};
-    public onLateUpdate: (data: I.onLateUpdateData) => void = data => {};
-    public onRender: (data: I.onRenderData) => void = data => {};
-    public onQuit: (data: I.onQuitData) => void = data => {};
-    public onDestroy: (data: I.onDestroyData) => void = data => {};
+    public entityManager!: EntityManager;
 
-    public async initialize(params: I.InitializeParams = {}) {
-        if (this.isInitialized) throw new Error(ERROR.IS_INITIALIZED);
+    public async init(params: I.InitializeParams = {}) {
+        if (this.isInitialized) throw new Error(E.IS_INITIALIZED);
 
         const style = document.createElement('style');
         style.innerHTML = `
@@ -72,14 +66,14 @@ class Engine {
 
         this.clock = new Clock();
 
-        this.isInitialized = true;
+        this.entityManager = new EntityManager();
 
-        this.onInit({});
+        this.isInitialized = true;
     }
 
     public async run() {
-        if (!this.isInitialized) throw new Error(ERROR.NOT_INITIALIZED);
-        if (this.isActive) throw new Error(ERROR.IS_RUNNING);
+        if (!this.isInitialized) throw new Error(E.NOT_INITIALIZED);
+        if (this.isActive) throw new Error(E.IS_RUNNING);
 
         this.start();
 
@@ -96,14 +90,15 @@ class Engine {
     }
 
     public shutdown() {
-        this.quit();
+        this.isActive = false;
+        this.destroy();
     }
 
     private start() {
         this.isActive = true;
         this.needsResize = true;
         this.clock.start();
-        this.onStart({});
+        this.entityManager.start({});
         window.requestAnimationFrame(() => {
             this.tick();
         });
@@ -114,7 +109,7 @@ class Engine {
 
         this.update();
         this.lateUpdate();
-        this.render();
+        this.execute();
 
         if (this.isActive) {
             window.requestAnimationFrame(() => {
@@ -144,7 +139,9 @@ class Engine {
         this.#canvas.style.width = DIM.width + 'px';
         this.#canvas.style.height = DIM.height + 'px';
 
-        this.onResize({resolution: this.#resolution});
+        const params = {resolution: this.#resolution};
+
+        this.entityManager.resize(params);
     }
 
     private update() {
@@ -156,27 +153,21 @@ class Engine {
             resolution: this.resolution,
         };
 
-        this.onUpdate(this.frameData);
+        this.entityManager.update(this.frameData);
     }
 
     private lateUpdate() {
-        this.onLateUpdate({});
+        this.entityManager.lateUpdate({});
     }
 
-    private render() {
-        this.onRender(this.frameData);
-    }
-
-    private quit() {
-        this.isActive = false;
-        this.onQuit({});
-        this.destroy();
+    private execute() {
+        this.entityManager.execute(this.frameData);
     }
 
     private destroy() {
         this.#canvas?.remove();
         this.clock?.destroy();
-        this.onDestroy({});
+        this.entityManager?.destroy({});
     }
 }
 

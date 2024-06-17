@@ -31,14 +31,14 @@ describe('Engine', () => {
 
     describe('after calling initialization (no arguments passed)', () => {
         test('canvas should be created', () => {
-            engine!.initialize();
+            engine!.init();
             const canvas = engine!.canvas;
             expect(canvas).toBeDefined();
             expect(canvas).toBeInstanceOf(HTMLCanvasElement);
         });
 
         test('resolution parameters should all have a value of 1', () => {
-            engine!.initialize();
+            engine!.init();
             const resolution = engine!.resolution;
             expect(resolution).toBeDefined();
 
