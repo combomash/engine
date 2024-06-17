@@ -16,19 +16,3 @@ export interface FrameParams {
     elapsedTime: number;
     resolution: Resolution;
 }
-
-export interface onInitParams {}
-
-export interface onStartParams {}
-
-export interface onResizeParams {
-    resolution: Resolution;
-}
-
-export interface onUpdateParams extends FrameParams {}
-
-export interface onLateUpdateParams {}
-
-export interface onExecuteParams extends FrameParams {}
-
-export interface onDestroyParams {}

@@ -157,7 +157,7 @@ class Engine {
     }
 
     private lateUpdate() {
-        this.entityManager.lateUpdate({});
+        this.entityManager.lateUpdate(this.frameData);
     }
 
     private execute() {
