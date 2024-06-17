@@ -1,4 +1,4 @@
-export class Timer {
+export class Clock {
     #isActive: boolean = false;
     #previous: number = 0;
     #current: number = 0;
@@ -8,17 +8,15 @@ export class Timer {
 
     constructor() {
         if (typeof document !== 'undefined' && document.hidden !== undefined) {
-            document.addEventListener(
-                'visibilitychange',
-                _ => {
-                    if (document.visibilityState == 'visible') {
-                        this.#current = Timer.now() - this.#start;
-                    }
-                },
-                false,
-            );
+            document.addEventListener('visibilitychange', this.handleVisibilityChange, false);
         }
     }
+
+    private handleVisibilityChange = () => {
+        if (document.visibilityState == 'visible') {
+            this.#current = Clock.now() - this.#start;
+        }
+    };
 
     public static now = () => (typeof performance === 'undefined' ? Date : performance).now();
 
@@ -36,7 +34,7 @@ export class Timer {
 
     public start() {
         if (this.#isActive) return;
-        const now = Timer.now();
+        const now = Clock.now();
         this.#start = now;
         this.#current = now - this.#start;
         this.#isActive = true;
@@ -60,8 +58,13 @@ export class Timer {
     public tick() {
         if (!this.#isActive) return;
         this.#previous = this.#current;
-        this.#current = Timer.now() - this.#start;
+        this.#current = Clock.now() - this.#start;
         this.#delta = this.#current - this.#previous;
         this.#elapsed += this.#delta;
+    }
+
+    public destroy() {
+        this.stop();
+        document.removeEventListener('visibilitychange', this.handleVisibilityChange);
     }
 }

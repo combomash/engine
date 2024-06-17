@@ -1,4 +1,4 @@
-import {Timer} from './timer';
+import {Clock} from './clock';
 import {Utils} from '../helpers/utils';
 import * as I from './engine.interface';
 import * as ERROR from './engine.errors';
@@ -16,7 +16,7 @@ class Engine {
         return this.#resolution;
     }
 
-    private timer!: Timer;
+    private clock!: Clock;
 
     private frameData!: I.FrameData;
 
@@ -70,7 +70,7 @@ class Engine {
             devicePixelRatio: params.devicePixelRatio ?? 1,
         };
 
-        this.timer = new Timer();
+        this.clock = new Clock();
 
         this.isInitialized = true;
 
@@ -102,7 +102,7 @@ class Engine {
     private start() {
         this.isActive = true;
         this.needsResize = true;
-        this.timer.start();
+        this.clock.start();
         this.onStart({});
         window.requestAnimationFrame(() => {
             this.tick();
@@ -110,7 +110,7 @@ class Engine {
     }
 
     private tick() {
-        this.timer.tick();
+        this.clock.tick();
 
         this.update();
         this.lateUpdate();
@@ -151,8 +151,8 @@ class Engine {
         if (this.needsResize) this.resize();
 
         this.frameData = {
-            deltaTime: this.timer.delta,
-            elapsedTime: this.timer.elapsed,
+            deltaTime: this.clock.delta,
+            elapsedTime: this.clock.elapsed,
             resolution: this.resolution,
         };
 
@@ -175,6 +175,7 @@ class Engine {
 
     private destroy() {
         this.#canvas?.remove();
+        this.clock?.destroy();
         this.onDestroy({});
     }
 }

@@ -1,4 +1,4 @@
 export {Engine} from './core/engine';
-export {Timer} from './core/timer';
+export {Clock} from './core/clock';
 
 export {Utils} from './helpers/utils';
