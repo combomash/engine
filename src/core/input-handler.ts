@@ -39,8 +39,10 @@ export class InputHandler implements Entity {
 
     private target: Target;
 
-    private keyLock: boolean = false;
+    private lock: boolean = false;
+
     private keyBinds: {[key: string]: KeyBind} = {};
+    private deferredStateChanges: Array<{bind: KeyBind; newState: true | null; type: 'key'}> = [];
 
     private commandsToExecute: Array<Command> = [];
 
@@ -86,10 +88,23 @@ export class InputHandler implements Entity {
     private handleKeyDown = (e: Event | KeyboardEvent): void => {
         if (e instanceof KeyboardEvent) {
             const {key} = e;
-            if (this.isKeyBound(key) && !this.keyLock) {
+            if (this.isKeyBound(key)) {
                 const bind = this.keyBinds[key];
                 if (bind.action !== 'hold' && e.repeat) return;
-                if (bind.action === 'down' || bind.action === 'hold') bind.state = true;
+
+                let newState = bind.state;
+                if (bind.action === 'down' || bind.action === 'hold') newState = true;
+
+                if (this.lock) {
+                    this.deferredStateChanges.push({
+                        bind,
+                        newState,
+                        type: 'key',
+                    });
+                    return;
+                }
+
+                bind.state = newState;
             }
         }
     };
@@ -97,10 +112,23 @@ export class InputHandler implements Entity {
     private handleKeyUp = (e: Event | KeyboardEvent): void => {
         if (e instanceof KeyboardEvent) {
             const {key} = e;
-            if (this.isKeyBound(key) && !this.keyLock) {
+            if (this.isKeyBound(key)) {
                 const bind = this.keyBinds[key];
-                if (bind.action === 'hold') bind.state = null;
-                else if (bind.action === 'up') bind.state = true;
+
+                let newState = bind.state;
+                if (bind.action === 'hold') newState = null;
+                else if (bind.action === 'up') newState = true;
+
+                if (this.lock) {
+                    this.deferredStateChanges.push({
+                        bind,
+                        newState,
+                        type: 'key',
+                    });
+                    return;
+                }
+
+                bind.state = newState;
             }
         }
     };
@@ -114,7 +142,7 @@ export class InputHandler implements Entity {
     }
 
     update() {
-        this.keyLock = true;
+        this.lock = true;
 
         for (const key of Object.keys(this.keyBinds)) {
             const bind = this.keyBinds[key];
@@ -131,7 +159,16 @@ export class InputHandler implements Entity {
             command?.execute();
         }
 
-        this.keyLock = false;
+        this.lock = false;
+    }
+
+    lateUpdate() {
+        while (this.deferredStateChanges.length > 0) {
+            const stateChange = this.deferredStateChanges.pop();
+            if (stateChange) {
+                if (stateChange.type === 'key') this.keyBinds[stateChange.bind.key].state = stateChange.newState;
+            }
+        }
     }
 
     destroy() {
