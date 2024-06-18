@@ -143,15 +143,19 @@ class Engine {
         this.entityManager.resize(params);
     }
 
-    toggleFullscreen() {
-        if (!this.canToggleFullscreen) return;
-
-        if (
+    isFullscreen() {
+        return (
             !document.fullscreenElement &&
             !(document as any).mozFullScreenElement &&
             !(document as any).webkitFullscreenElement &&
             !(document as any).msFullscreenElement
-        ) {
+        );
+    }
+
+    toggleFullscreen() {
+        if (!this.canToggleFullscreen) return;
+
+        if (this.isFullscreen()) {
             if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen();
             } else if ((document.documentElement as any).msRequestFullscreen) {
