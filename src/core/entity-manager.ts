@@ -1,14 +1,4 @@
-import {StartParams, ResizeParams, UpdateParams, LateUpdateParams, ExecuteParams, DestroyParams} from './entity-manager-interfaces';
-
-export interface Entity {
-    isActive: boolean;
-    start?: (params: StartParams) => void;
-    resize?: (params: ResizeParams) => void;
-    update?: (params: UpdateParams) => void;
-    lateUpdate?: (params: LateUpdateParams) => void;
-    execute?: (params: ExecuteParams) => void;
-    destroy?: (params: DestroyParams) => void;
-}
+import {Entity, StartParams, ResizeParams, UpdateParams, LateUpdateParams, ExecuteParams, DestroyParams} from './entity-manager-interfaces';
 
 export class EntityManager {
     constructor() {}

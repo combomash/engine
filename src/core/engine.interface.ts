@@ -16,7 +16,7 @@ export interface Resolution {
     fillMode: FillMode;
 }
 
-export interface FrameParams {
+export interface FrameData {
     deltaTime: number;
     elapsedTime: number;
     resolution: Resolution;

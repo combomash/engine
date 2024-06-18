@@ -19,11 +19,12 @@ class Engine {
     }
 
     private clock!: Clock;
-    private frameData!: I.FrameParams;
+    private frameData!: I.FrameData;
 
     private isActive: boolean = false;
     private needsResize: boolean = false;
     private isInitialized: boolean = false;
+    private doShutdown: boolean = false;
 
     entityManager!: EntityManager;
 
@@ -70,18 +71,15 @@ class Engine {
     async run() {
         if (!this.isInitialized) throw new Error(E.NOT_INITIALIZED);
         if (this.isActive) throw new Error(E.IS_RUNNING);
-
-        this.start();
-
         return new Promise<void>(resolve => {
             this.resolve = resolve;
+            this.start();
         });
     }
 
     shutdown() {
         this.isActive = false;
-        this.resolve();
-        this.destroy();
+        this.doShutdown = true;
     }
 
     private start() {
@@ -105,6 +103,11 @@ class Engine {
             window.requestAnimationFrame(() => {
                 this.tick();
             });
+        }
+
+        if (this.doShutdown) {
+            this.resolve();
+            this.destroy();
         }
     }
 
