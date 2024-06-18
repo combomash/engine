@@ -18,21 +18,21 @@ export class Clock {
         }
     };
 
-    public static now = () => (typeof performance === 'undefined' ? Date : performance).now();
+    static now = () => (typeof performance === 'undefined' ? Date : performance).now();
 
-    public get isActive() {
+    get isActive() {
         return this.#isActive;
     }
 
-    public get delta() {
+    get delta() {
         return this.#delta / 1000;
     }
 
-    public get elapsed() {
+    get elapsed() {
         return this.#elapsed / 1000;
     }
 
-    public start() {
+    start() {
         if (this.#isActive) return;
         const now = Clock.now();
         this.#start = now;
@@ -40,13 +40,13 @@ export class Clock {
         this.#isActive = true;
     }
 
-    public stop() {
+    stop() {
         if (!this.#isActive) return;
         this.#isActive = false;
         this.#delta = 0;
     }
 
-    public reset() {
+    reset() {
         this.#isActive = false;
         this.#previous = 0;
         this.#current = 0;
@@ -55,7 +55,7 @@ export class Clock {
         this.#elapsed = 0;
     }
 
-    public tick() {
+    tick() {
         if (!this.#isActive) return;
         this.#previous = this.#current;
         this.#current = Clock.now() - this.#start;
@@ -63,7 +63,7 @@ export class Clock {
         this.#elapsed += this.#delta;
     }
 
-    public destroy() {
+    destroy() {
         this.stop();
         document.removeEventListener('visibilitychange', this.handleVisibilityChange);
     }

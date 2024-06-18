@@ -9,7 +9,7 @@ class Engine {
     constructor() {}
 
     #canvas!: HTMLCanvasElement;
-    public get canvas() {
+    get canvas() {
         return this.#canvas;
     }
 
@@ -25,9 +25,9 @@ class Engine {
     private needsResize: boolean = false;
     private isInitialized: boolean = false;
 
-    public entityManager!: EntityManager;
+    entityManager!: EntityManager;
 
-    public async init(params: I.InitializeParams = {}) {
+    async init(params: I.InitializeParams = {}) {
         if (this.isInitialized) throw new Error(E.IS_INITIALIZED);
 
         const style = document.createElement('style');
@@ -71,26 +71,22 @@ class Engine {
         this.isInitialized = true;
     }
 
-    public async run() {
+    private resolve: () => void = () => {};
+
+    async run() {
         if (!this.isInitialized) throw new Error(E.NOT_INITIALIZED);
         if (this.isActive) throw new Error(E.IS_RUNNING);
 
         this.start();
 
         return new Promise<void>(resolve => {
-            const doShutdown = () => {
-                this.shutdown();
-                resolve();
-            };
-
-            window.addEventListener('keydown', event => {
-                if (event.key === 'Escape') doShutdown();
-            });
+            this.resolve = resolve;
         });
     }
 
-    public shutdown() {
+    shutdown() {
         this.isActive = false;
+        this.resolve();
         this.destroy();
     }
 

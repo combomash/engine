@@ -1,4 +1,4 @@
-import {StartParams, ResizeParams, UpdateParams, LateUpdateParams, ExecuteParams, DestroyParams} from './entity-manager-interface';
+import {StartParams, ResizeParams, UpdateParams, LateUpdateParams, ExecuteParams, DestroyParams} from './entity-manager-interfaces';
 
 export interface Entity {
     isActive: boolean;
@@ -15,7 +15,7 @@ export class EntityManager {
 
     private entities: Array<Entity> = [];
 
-    public register(entity: Entity): boolean {
+    register(entity: Entity): boolean {
         if (this.entities.includes(entity)) {
             return false;
         }
@@ -23,7 +23,7 @@ export class EntityManager {
         return true;
     }
 
-    public delist(entity: Entity): boolean {
+    delist(entity: Entity): boolean {
         if (this.entities.includes(entity)) {
             const index = this.entities.indexOf(entity);
             this.entities.splice(index, 1);
@@ -32,42 +32,42 @@ export class EntityManager {
         return false;
     }
 
-    public start(params: StartParams) {
+    start(params: StartParams) {
         for (const entity of this.entities) {
             if (!entity.isActive) continue;
             entity.start?.(params);
         }
     }
 
-    public resize(params: ResizeParams) {
+    resize(params: ResizeParams) {
         for (const entity of this.entities) {
             if (!entity.isActive) continue;
             entity.resize?.(params);
         }
     }
 
-    public update(params: UpdateParams) {
+    update(params: UpdateParams) {
         for (const entity of this.entities) {
             if (!entity.isActive) continue;
             entity.update?.(params);
         }
     }
 
-    public lateUpdate(params: LateUpdateParams) {
+    lateUpdate(params: LateUpdateParams) {
         for (const entity of this.entities) {
             if (!entity.isActive) continue;
             entity.lateUpdate?.(params);
         }
     }
 
-    public execute(params: ExecuteParams) {
+    execute(params: ExecuteParams) {
         for (const entity of this.entities) {
             if (!entity.isActive) continue;
             entity.execute?.(params);
         }
     }
 
-    public destroy(params: DestroyParams) {
+    destroy(params: DestroyParams) {
         for (const entity of this.entities) {
             entity.isActive = false;
             entity.destroy?.(params);
