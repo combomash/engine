@@ -55,7 +55,7 @@ class Engine {
         this.#resolution = {
             width: window.innerWidth,
             height: window.innerHeight,
-            aspectRatio: params.aspectRatio ?? 1,
+            aspectRatio: params.aspectRatio ?? window.innerWidth / window.innerHeight,
             devicePixelRatio: params.devicePixelRatio ?? (window.devicePixelRatio || 1),
             fillMode: params.aspectRatio ? 'aspect' : 'fill',
         };

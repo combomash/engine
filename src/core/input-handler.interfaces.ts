@@ -8,3 +8,5 @@ export interface KeyBind {
     command: Command;
     state: true | null;
 }
+
+export interface MouseBind {}

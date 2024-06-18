@@ -1,6 +1,6 @@
-import {Entity} from './entity-manager';
+import {Entity} from './entity-manager-interfaces';
 import {KeyBind} from './input-handler.interfaces';
-import {validKeyActionTypes, validKeyCodes} from './input-handler.constants';
+import {validActionTypes, validKeyCodes} from './input-handler.constants';
 
 export type Target = Window | Document | HTMLCanvasElement | HTMLElement;
 
@@ -110,7 +110,7 @@ export class InputHandler implements Entity {
     }
 
     private isValidKeyActionType(action: string): boolean {
-        return validKeyActionTypes.has(action);
+        return validActionTypes.has(action);
     }
 
     update() {

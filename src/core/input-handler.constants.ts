@@ -1,4 +1,19 @@
-export const validKeyActionTypes = new Set(['down', 'up', 'hold']);
+export const validActionTypes = new Set(['down', 'up', 'hold']);
+
+export const validMouseEvents = new Set<string>([
+    'click',
+    'dblclick',
+    'mousedown',
+    'mouseup',
+    'mousemove',
+    'mouseenter',
+    'mouseleave',
+    'mouseover',
+    'mouseout',
+    'contextmenu',
+]);
+
+export const validTouchEvents = new Set<string>(['touchstart', 'touchend', 'touchmove', 'touchcancel']);
 
 export const validKeyCodes = new Set([
     'Backspace',
