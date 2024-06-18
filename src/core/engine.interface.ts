@@ -1,3 +1,5 @@
+export type FillMode = 'fill' | 'aspect';
+
 export interface InitializeParams {
     canvas?: HTMLCanvasElement;
     aspectRatio?: number;

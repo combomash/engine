@@ -27,6 +27,12 @@ class Engine {
 
     entityManager!: EntityManager;
 
+    private setNeedsResize = () => {
+        this.needsResize = true;
+    };
+
+    private handleResize = Utils.debounce(this.setNeedsResize.bind(this), 150);
+
     async init(params: I.InitializeParams = {}) {
         if (this.isInitialized) throw new Error(E.IS_INITIALIZED);
 
@@ -47,19 +53,14 @@ class Engine {
         `;
         document.body.appendChild(style);
 
-        window.addEventListener(
-            'resize',
-            Utils.debounce(() => {
-                this.needsResize = true;
-            }, 300),
-        );
+        window.addEventListener('resize', this.handleResize);
 
         this.#canvas = params.canvas ?? document.createElement('canvas');
         document.body.appendChild(this.#canvas);
 
         this.#resolution = {
-            width: 1,
-            height: 1,
+            width: window.innerWidth,
+            height: window.innerHeight,
             aspectRatio: params.aspectRatio ?? 1,
             devicePixelRatio: params.devicePixelRatio ?? 1,
         };
@@ -163,6 +164,7 @@ class Engine {
     private destroy() {
         this.#canvas?.remove();
         this.clock?.destroy();
+        window.removeEventListener('resize', this.handleResize);
         this.entityManager?.destroy({});
     }
 }
