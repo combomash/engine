@@ -24,6 +24,7 @@ class Engine {
     private isActive: boolean = false;
     private needsResize: boolean = false;
     private isInitialized: boolean = false;
+    private canToggleFullscreen: boolean = true;
     private doShutdown: boolean = false;
 
     entityManager!: EntityManager;
@@ -58,6 +59,11 @@ class Engine {
             devicePixelRatio: params.devicePixelRatio ?? (window.devicePixelRatio || 1),
             fillMode: params.aspectRatio ? 'aspect' : 'fill',
         };
+
+        if ('canToggleFullscreen' in params) {
+            console.log('here');
+            this.canToggleFullscreen = params.canToggleFullscreen ?? this.canToggleFullscreen;
+        }
 
         this.clock = new Clock();
 
@@ -135,6 +141,37 @@ class Engine {
         const params = {resolution: this.#resolution};
 
         this.entityManager.resize(params);
+    }
+
+    toggleFullscreen() {
+        if (!this.canToggleFullscreen) return;
+
+        if (
+            !document.fullscreenElement &&
+            !(document as any).mozFullScreenElement &&
+            !(document as any).webkitFullscreenElement &&
+            !(document as any).msFullscreenElement
+        ) {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if ((document.documentElement as any).msRequestFullscreen) {
+                (document.documentElement as any).msRequestFullscreen();
+            } else if ((document.documentElement as any).mozRequestFullScreen) {
+                (document.documentElement as any).mozRequestFullScreen();
+            } else if ((document.documentElement as any).webkitRequestFullscreen) {
+                (document.documentElement as any).webkitRequestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if ((document as any).msExitFullscreen) {
+                (document as any).msExitFullscreen();
+            } else if ((document as any).mozCancelFullScreen) {
+                (document as any).mozCancelFullScreen();
+            } else if ((document as any).webkitExitFullscreen) {
+                (document as any).webkitExitFullscreen();
+            }
+        }
     }
 
     private update() {

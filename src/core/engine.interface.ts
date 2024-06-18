@@ -5,6 +5,7 @@ export interface InitializeParams {
     aspectRatio?: number;
     devicePixelRatio?: number;
     debounceResizeMs?: number;
+    canToggleFullscreen?: boolean;
     css?: string;
 }
 
