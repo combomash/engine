@@ -64,7 +64,7 @@ export class InputHandler implements Entity {
             throw new Error(`Key ${key} is not a valid Key Code`);
         }
 
-        if (!this.isValidKeyActionType(action)) {
+        if (!this.isValidActionType(action)) {
             throw new Error(`ActionType ${action} is not a valid Action Key Code`);
         }
 
@@ -109,7 +109,7 @@ export class InputHandler implements Entity {
         return validKeyCodes.has(key);
     }
 
-    private isValidKeyActionType(action: string): boolean {
+    private isValidActionType(action: string): boolean {
         return validActionTypes.has(action);
     }
 
