@@ -20,7 +20,7 @@ export const validTouchEvents = new Set<string>([
     // 'touchcancel'
 ]);
 
-const validKeyCodes = new Set<string>([
+export const validKeyCodes = new Set<string>([
     'Backspace',
     'Tab',
     'Enter',
@@ -107,4 +107,4 @@ const validKeyCodes = new Set<string>([
 
 export const validActions = new Set([...validKeyActions, ...validMouseEvents]);
 
-export const validKeys = new Set([...validMouseEvents, ...validTouchEvents, ...validKeyCodes]);
+export const validEvents = new Set([...validMouseEvents, ...validTouchEvents, ...validKeyCodes]);
