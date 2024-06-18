@@ -1,12 +1,13 @@
 import {Command} from './input-handler';
 
-export type KeyActionType = 'down' | 'up' | 'hold';
+type KeyActionType = 'down' | 'up' | 'hold';
+type MouseActionType = 'click';
 
-export interface KeyBind {
+type ActionType = KeyActionType | MouseActionType;
+
+export interface Bind {
     key: string;
-    action: KeyActionType;
+    action: ActionType;
     command: Command;
     state: true | null;
 }
-
-export interface MouseBind {}

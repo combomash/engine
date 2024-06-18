@@ -1,21 +1,26 @@
-export const validActionTypes = new Set(['down', 'up', 'hold']);
+export const validKeyActions = new Set<string>(['down', 'up', 'hold']);
 
 export const validMouseEvents = new Set<string>([
     'click',
     'dblclick',
-    'mousedown',
-    'mouseup',
-    'mousemove',
-    'mouseenter',
-    'mouseleave',
-    'mouseover',
-    'mouseout',
-    'contextmenu',
+    // 'mousedown',
+    // 'mouseup',
+    // 'mousemove',
+    // 'mouseenter',
+    // 'mouseleave',
+    // 'mouseover',
+    // 'mouseout',
+    // 'contextmenu',
 ]);
 
-export const validTouchEvents = new Set<string>(['touchstart', 'touchend', 'touchmove', 'touchcancel']);
+export const validTouchEvents = new Set<string>([
+    // 'touchstart',
+    // 'touchend',
+    // 'touchmove',
+    // 'touchcancel'
+]);
 
-export const validKeyCodes = new Set([
+const validKeyCodes = new Set<string>([
     'Backspace',
     'Tab',
     'Enter',
@@ -99,3 +104,7 @@ export const validKeyCodes = new Set([
     'BracketRight',
     'Quote',
 ]);
+
+export const validActions = new Set([...validKeyActions, ...validMouseEvents]);
+
+export const validKeys = new Set([...validMouseEvents, ...validTouchEvents, ...validKeyCodes]);

@@ -1,6 +1,6 @@
 import {Entity} from './entity-manager-interfaces';
-import {KeyBind} from './input-handler.interfaces';
-import {validActionTypes, validKeyCodes} from './input-handler.constants';
+import {Bind} from './input-handler.interfaces';
+import {validActions, validKeyActions, validKeys, validMouseEvents, validTouchEvents} from './input-handler.constants';
 
 export type Target = Window | Document | HTMLCanvasElement | HTMLElement;
 
@@ -41,10 +41,11 @@ export class InputHandler implements Entity {
 
     private lock: boolean = false;
 
-    private keyBinds: {[key: string]: KeyBind} = {};
-    private deferredStateChanges: Array<{bind: KeyBind; newState: true | null; type: 'key'}> = [];
-
+    private binds: {[key: string]: Bind} = {};
+    private deferredStateChanges: Array<{bind: Bind; newState: true | null}> = [];
     private commandsToExecute: Array<Command> = [];
+
+    // TODO - add an object that tracks event listeners, only add them as binds require them
 
     constructor({target}: {target: Target}) {
         if (!TargetRegistrar.instance.register(target)) {
@@ -53,54 +54,22 @@ export class InputHandler implements Entity {
         this.target = target;
         this.target.addEventListener('keydown', this.handleKeyDown);
         this.target.addEventListener('keyup', this.handleKeyUp);
-    }
-
-    isKeyBound(key: string) {
-        return Object.keys(this.keyBinds).includes(key);
-    }
-
-    bindKey(bind: KeyBind) {
-        const {key, action} = bind;
-
-        if (!this.isValidKeyCode(key)) {
-            throw new Error(`Key ${key} is not a valid Key Code`);
-        }
-
-        if (!this.isValidActionType(action)) {
-            throw new Error(`ActionType ${action} is not a valid Action Key Code`);
-        }
-
-        if (!this.isKeyBound(key)) {
-            this.keyBinds[key] = bind;
-        } else {
-            throw new Error(`Key ${key} is already bound, unbind first!`);
-        }
-    }
-
-    unbindKey(key: string) {
-        if (this.isKeyBound(key)) {
-            delete this.keyBinds[key];
-        } else {
-            throw new Error(`Key ${key} was not bound`);
-        }
+        this.target.addEventListener('click', this.handleClick);
+        this.target.addEventListener('dblclick', this.handleDblClick);
     }
 
     private handleKeyDown = (e: Event | KeyboardEvent): void => {
         if (e instanceof KeyboardEvent) {
             const {key} = e;
-            if (this.isKeyBound(key)) {
-                const bind = this.keyBinds[key];
+            if (this.isBound(key)) {
+                const bind = this.binds[key];
                 if (bind.action !== 'hold' && e.repeat) return;
 
                 let newState = bind.state;
                 if (bind.action === 'down' || bind.action === 'hold') newState = true;
 
                 if (this.lock) {
-                    this.deferredStateChanges.push({
-                        bind,
-                        newState,
-                        type: 'key',
-                    });
+                    this.deferredStateChanges.push({bind, newState});
                     return;
                 }
 
@@ -112,19 +81,15 @@ export class InputHandler implements Entity {
     private handleKeyUp = (e: Event | KeyboardEvent): void => {
         if (e instanceof KeyboardEvent) {
             const {key} = e;
-            if (this.isKeyBound(key)) {
-                const bind = this.keyBinds[key];
+            if (this.isBound(key)) {
+                const bind = this.binds[key];
 
                 let newState = bind.state;
                 if (bind.action === 'hold') newState = null;
                 else if (bind.action === 'up') newState = true;
 
                 if (this.lock) {
-                    this.deferredStateChanges.push({
-                        bind,
-                        newState,
-                        type: 'key',
-                    });
+                    this.deferredStateChanges.push({bind, newState});
                     return;
                 }
 
@@ -133,22 +98,99 @@ export class InputHandler implements Entity {
         }
     };
 
-    private isValidKeyCode(key: string): boolean {
-        return validKeyCodes.has(key);
+    private handleClick = (e: Event | PointerEvent): void => {
+        if (e instanceof PointerEvent) {
+            if (this.isBound('click')) {
+                const bind = this.binds['click'];
+
+                let newState = true;
+
+                if (this.lock) {
+                    this.deferredStateChanges.push({bind, newState});
+                    return;
+                }
+
+                bind.state = newState;
+            }
+        }
+    };
+
+    private handleDblClick = (e: Event | MouseEvent): void => {
+        if (e instanceof MouseEvent) {
+            if (this.isBound('dblclick')) {
+                const bind = this.binds['dblclick'];
+
+                let newState = true;
+
+                if (this.lock) {
+                    this.deferredStateChanges.push({bind, newState});
+                    return;
+                }
+
+                bind.state = newState;
+            }
+        }
+    };
+
+    // private handleTouchStart = (e: Event | TouchEvent): void => {}; // TODO
+    // private handleTouchEnd = (e: Event | TouchEvent): void => {}; // TODO
+
+    isBound(key: string) {
+        return Object.keys(this.binds).includes(key);
     }
 
-    private isValidActionType(action: string): boolean {
-        return validActionTypes.has(action);
+    bind(bind: Bind) {
+        const {key, action} = bind;
+
+        if (!this.isValidKey(key)) {
+            throw new Error(`Bind key ${key} is not valid`);
+        }
+
+        if (!this.isValidAction(action)) {
+            throw new Error(`Action ${action} is not valid`);
+        }
+
+        if (!validKeyActions.has(action)) {
+            if (!this.isValidMouseOrTouch(key, action)) {
+                throw new Error(`Bind key ${key} and Action ${action} must be the same for Mouse or Touch bindings`);
+            }
+        }
+
+        if (!this.isBound(key)) {
+            this.binds[key] = bind;
+        } else {
+            throw new Error(`Bind key ${key} is already bound`);
+        }
+    }
+
+    unbind(key: string) {
+        if (this.isBound(key)) {
+            delete this.binds[key];
+        } else {
+            throw new Error(`Bind key ${key} was not bound`);
+        }
+    }
+
+    private isValidKey(key: string): boolean {
+        return validKeys.has(key);
+    }
+
+    private isValidAction(action: string): boolean {
+        return validActions.has(action);
+    }
+
+    private isValidMouseOrTouch(key: string, action: string): boolean {
+        return key === action && (validMouseEvents.has(key) || (validTouchEvents.has(key) && (validMouseEvents.has(action) || validTouchEvents.has(action))));
     }
 
     update() {
         this.lock = true;
 
-        for (const key of Object.keys(this.keyBinds)) {
-            const bind = this.keyBinds[key];
+        for (const key of Object.keys(this.binds)) {
+            const bind = this.binds[key];
             if (bind.state) {
                 this.commandsToExecute.push(bind.command);
-                if (bind.action === 'up' || bind.action === 'down') {
+                if (bind.action !== 'hold') {
                     bind.state = null;
                 }
             }
@@ -166,7 +208,7 @@ export class InputHandler implements Entity {
         while (this.deferredStateChanges.length > 0) {
             const stateChange = this.deferredStateChanges.pop();
             if (stateChange) {
-                if (stateChange.type === 'key') this.keyBinds[stateChange.bind.key].state = stateChange.newState;
+                this.binds[stateChange.bind.key].state = stateChange.newState;
             }
         }
     }
