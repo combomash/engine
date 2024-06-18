@@ -4,6 +4,8 @@ export interface InitializeParams {
     canvas?: HTMLCanvasElement;
     aspectRatio?: number;
     devicePixelRatio?: number;
+    debounceResizeMs?: number;
+    css?: string;
 }
 
 export interface Resolution {
@@ -11,6 +13,7 @@ export interface Resolution {
     height: number;
     aspectRatio: number;
     devicePixelRatio: number;
+    fillMode: FillMode;
 }
 
 export interface FrameParams {

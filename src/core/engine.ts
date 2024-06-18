@@ -27,32 +27,24 @@ class Engine {
 
     entityManager!: EntityManager;
 
+    private handleResize!: () => void;
+
     private setNeedsResize = () => {
         this.needsResize = true;
     };
 
-    private handleResize = Utils.debounce(this.setNeedsResize.bind(this), 150);
-
     async init(params: I.InitializeParams = {}) {
         if (this.isInitialized) throw new Error(E.IS_INITIALIZED);
 
-        const style = document.createElement('style');
-        style.innerHTML = `
-        * {
-            margin: 0;
-            padding: 0;
-            overflow: clip;
-            background: #000;
-            height: 100%;
-        }
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        `;
-        document.body.appendChild(style);
+        const css = document.createElement('style');
+        css.innerHTML = `
+            *{margin:0;padding:0;overflow:clip;background: #000;height:100%;}
+            body{display:flex;justify-content:center;align-items:center;}
+            ${params.css ?? ''}
+            `;
+        document.body.appendChild(css);
 
+        this.handleResize = Utils.debounce(this.setNeedsResize.bind(this), params.debounceResizeMs ?? 0);
         window.addEventListener('resize', this.handleResize);
 
         this.#canvas = params.canvas ?? document.createElement('canvas');
@@ -62,7 +54,8 @@ class Engine {
             width: window.innerWidth,
             height: window.innerHeight,
             aspectRatio: params.aspectRatio ?? 1,
-            devicePixelRatio: params.devicePixelRatio ?? 1,
+            devicePixelRatio: params.devicePixelRatio ?? (window.devicePixelRatio || 1),
+            fillMode: params.aspectRatio ? 'aspect' : 'fill',
         };
 
         this.clock = new Clock();
@@ -120,7 +113,7 @@ class Engine {
 
         const width = window.innerWidth;
         const height = window.innerHeight;
-        const aspectRatio = this.#resolution.aspectRatio;
+        const aspectRatio = this.#resolution.fillMode === 'aspect' ? this.#resolution.aspectRatio : width / height;
         const devicePixelRatio = this.#resolution.devicePixelRatio;
 
         const DIM = {
@@ -128,11 +121,11 @@ class Engine {
             height: width / aspectRatio >= height ? height : width / aspectRatio,
         };
 
-        this.#resolution.width = DIM.width * devicePixelRatio;
-        this.#resolution.height = DIM.height * devicePixelRatio;
+        this.#resolution.width = DIM.width;
+        this.#resolution.height = DIM.height;
 
-        this.#canvas.width = this.#resolution.width;
-        this.#canvas.height = this.#resolution.height;
+        this.#canvas.width = this.#resolution.width * devicePixelRatio;
+        this.#canvas.height = this.#resolution.height * devicePixelRatio;
         this.#canvas.style.width = DIM.width + 'px';
         this.#canvas.style.height = DIM.height + 'px';
 
