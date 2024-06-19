@@ -1,6 +1,6 @@
 import {Entity} from './entity-manager-interfaces';
 import {Bind} from './input-handler.interfaces';
-import {validEvents, validKeyActions, validKeyCodes, validMouseEvents, validTouchEvents} from './input-handler.constants';
+import {supportedEvents, validActions, validKeyCodes, validMouseEvents, validTouchEvents} from './input-handler.constants';
 
 export type Target = Window | Document | HTMLCanvasElement | HTMLElement;
 
@@ -59,10 +59,10 @@ export class InputHandler implements Entity {
             const {key} = e;
             if (this.isBound(key)) {
                 const bind = this.binds[key];
-                if (bind.action !== 'hold' && e.repeat) return;
+                if (bind.keyAction !== 'hold' && e.repeat) return;
 
-                let newState = bind.state;
-                if (bind.action === 'down' || bind.action === 'hold') newState = true;
+                let newState = bind.state ?? null;
+                if (bind.keyAction === 'down' || bind.keyAction === 'hold') newState = true;
 
                 if (this.lock) {
                     this.deferredStateChanges.push({bind, newState});
@@ -80,9 +80,9 @@ export class InputHandler implements Entity {
             if (this.isBound(key)) {
                 const bind = this.binds[key];
 
-                let newState = bind.state;
-                if (bind.action === 'hold') newState = null;
-                else if (bind.action === 'up') newState = true;
+                let newState = bind.state ?? null;
+                if (bind.keyAction === 'hold') newState = null;
+                else if (bind.keyAction === 'up') newState = true;
 
                 if (this.lock) {
                     this.deferredStateChanges.push({bind, newState});
@@ -128,62 +128,69 @@ export class InputHandler implements Entity {
         }
     };
 
-    isBound(key: string) {
-        return Object.keys(this.binds).includes(key);
+    isBound(input: string) {
+        return Object.keys(this.binds).includes(input);
     }
 
     bind(bind: Bind) {
-        const {key, action} = bind;
+        const {input, keyAction, command} = bind;
 
-        if (!validEvents.has(key)) {
-            throw new Error(`Bind key ${key} is not valid`);
+        if (!command) {
+            throw new Error(`A valid Command must be provided`);
         }
 
-        if (validKeyCodes.has(key)) {
+        if (!supportedEvents.has(input)) {
+            throw new Error(`Bind input ${input} is not valid`);
+        }
+
+        if (validKeyCodes.has(input)) {
             // Key
-            if (!validKeyActions.has(action)) {
-                throw new Error(`Action ${action} is not a valid Key action`);
+            if (!keyAction) throw new Error(`You must provide an keyAction for Key inputs: ['down', 'up', 'hold']`);
+
+            if (!validActions.has(keyAction)) {
+                throw new Error(`Action ${keyAction} is not a valid Key keyAction`);
             }
-            if (action === 'up') {
+
+            if (keyAction === 'up') {
                 if (!Object.keys(this.eventListeners).includes('keyup')) {
                     this.target.addEventListener('keyup', this.handleKeyUp);
                     this.eventListeners['keyup'] = this.handleKeyUp;
                 }
-            } else if (action === 'down' || action === 'hold') {
+            } else if (keyAction === 'down' || keyAction === 'hold') {
                 if (!Object.keys(this.eventListeners).includes('keydown')) {
                     this.target.addEventListener('keydown', this.handleKeyDown);
                     this.eventListeners['keydown'] = this.handleKeyDown;
                 }
             }
-        } else if (validMouseEvents.has(key)) {
+        } else if (validMouseEvents.has(input)) {
             // Mouse
-            if (!Object.keys(this.eventListeners).includes(key)) {
-                if (key === 'click') {
-                    this.target.addEventListener(key, this.handleClick);
+            if (!Object.keys(this.eventListeners).includes(input)) {
+                if (input === 'click') {
+                    this.target.addEventListener(input, this.handleClick);
                     this.eventListeners['keydown'] = this.handleClick;
-                } else if (key === 'dblclick') {
-                    this.target.addEventListener(key, this.handleDblClick);
+                } else if (input === 'dblclick') {
+                    this.target.addEventListener(input, this.handleDblClick);
                     this.eventListeners['keydown'] = this.handleDblClick;
                 }
             }
-        } else if (validTouchEvents.has(key)) {
+        } else if (validTouchEvents.has(input)) {
             // Touch
         } else {
-            throw new Error(`Bind key ${key} is unkown!`);
+            throw new Error(`Bind input ${input} is unkown!`);
         }
 
-        if (this.isBound(key)) {
-            throw new Error(`Bind key ${key} is already bound`);
+        if (this.isBound(input)) {
+            throw new Error(`Bind input ${input} is already bound`);
         }
 
-        this.binds[key] = bind;
+        this.binds[input] = bind;
     }
 
-    unbind(key: string) {
-        if (this.isBound(key)) {
-            delete this.binds[key];
+    unbind(input: string) {
+        if (this.isBound(input)) {
+            delete this.binds[input];
         } else {
-            console.warn(`Bind key ${key} was not bound`);
+            console.warn(`Bind input ${input} was not bound`);
         }
     }
 
@@ -194,7 +201,7 @@ export class InputHandler implements Entity {
             const bind = this.binds[key];
             if (bind.state) {
                 this.commandsToExecute.push(bind.command);
-                if (bind.action !== 'hold') {
+                if (bind.keyAction !== 'hold') {
                     bind.state = null;
                 }
             }
@@ -212,7 +219,7 @@ export class InputHandler implements Entity {
         while (this.deferredStateChanges.length > 0) {
             const stateChange = this.deferredStateChanges.pop();
             if (stateChange) {
-                this.binds[stateChange.bind.key].state = stateChange.newState;
+                this.binds[stateChange.bind.input].state = stateChange.newState;
             }
         }
     }

@@ -1,8 +1,8 @@
 import {Command} from './input-handler';
 
 export interface Bind {
-    key: string;
-    action: string;
+    input: string;
+    keyAction?: string;
     command: Command;
-    state: true | null;
+    state?: true | null;
 }

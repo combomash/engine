@@ -1,4 +1,4 @@
-export const validKeyActions = new Set<string>(['down', 'up', 'hold']);
+export const validActions = new Set<string>(['down', 'up', 'hold']);
 
 export const validMouseEvents = new Set<string>([
     'click',
@@ -105,6 +105,4 @@ export const validKeyCodes = new Set<string>([
     'Quote',
 ]);
 
-export const validActions = new Set([...validKeyActions, ...validMouseEvents]);
-
-export const validEvents = new Set([...validMouseEvents, ...validTouchEvents, ...validKeyCodes]);
+export const supportedEvents = new Set([...validMouseEvents, ...validTouchEvents, ...validKeyCodes]);
