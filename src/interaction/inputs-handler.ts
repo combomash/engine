@@ -1,12 +1,7 @@
-import {Entity} from './entity-manager-interfaces';
-import {Bind} from './input-handler.interfaces';
-import {supportedEvents, validActions, validKeyCodes, validMouseEvents, validTouchEvents} from './input-handler.constants';
+import {Bind, Entity, Command} from '../core/engine.interface';
+import {supportedEvents, validActions, validKeyCodes, validMouseEvents, validTouchEvents} from './inputs-handler.constants';
 
 export type Target = Window | Document | HTMLCanvasElement | HTMLElement;
-
-export interface Command {
-    execute(): void;
-}
 
 class TargetRegistrar {
     static #instance: TargetRegistrar;
@@ -34,7 +29,7 @@ class TargetRegistrar {
     }
 }
 
-export class InputHandler implements Entity {
+export class InputsHandler implements Entity {
     isActive: boolean = true;
 
     private target: Target;
@@ -223,7 +218,7 @@ export class InputHandler implements Entity {
 
     destroy() {
         if (!TargetRegistrar.instance.delist(this.target)) {
-            throw new Error('InputHandler has already been destroyed');
+            throw new Error('InputsHandler has already been destroyed');
         }
         for (const key of Object.keys(this.eventListeners)) {
             this.target.removeEventListener(key, this.eventListeners[key]);

@@ -1,4 +1,4 @@
-import {Entity, StartParams, ResizeParams, UpdateParams, LateUpdateParams, ExecuteParams, DestroyParams} from './entity-manager-interfaces';
+import {Entity, StartParams, ResizeParams, UpdateParams, LateUpdateParams, ExecuteParams, DestroyParams} from './engine.interface';
 
 export class EntityManager {
     constructor() {}
