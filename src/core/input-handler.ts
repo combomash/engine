@@ -165,13 +165,10 @@ export class InputHandler implements Entity {
         } else if (validMouseEvents.has(input)) {
             // Mouse
             if (!Object.keys(this.eventListeners).includes(input)) {
-                if (input === 'click') {
-                    this.target.addEventListener(input, this.handleClick);
-                    this.eventListeners['keydown'] = this.handleClick;
-                } else if (input === 'dblclick') {
-                    this.target.addEventListener(input, this.handleDblClick);
-                    this.eventListeners['keydown'] = this.handleDblClick;
-                }
+                let handler = this.handleClick;
+                if (input === 'dblclick') handler = this.handleDblClick;
+                this.target.addEventListener(input, handler);
+                this.eventListeners[input] = handler;
             }
         } else if (validTouchEvents.has(input)) {
             // Touch
