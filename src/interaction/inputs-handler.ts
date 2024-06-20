@@ -1,31 +1,19 @@
+import {Registrar} from '../core/registrar';
 import {Bind, Entity, Command} from '../core/engine.interface';
 import {supportedEvents, validActions, validKeyCodes, validMouseEvents, validTouchEvents} from './inputs-handler.constants';
 
 export type Target = Window | Document | HTMLCanvasElement | HTMLElement;
 
-class TargetRegistrar {
+class TargetRegistrar extends Registrar {
     static #instance: TargetRegistrar;
-    private constructor() {}
+    private constructor() {
+        super();
+    }
     static get instance(): TargetRegistrar {
         if (!TargetRegistrar.#instance) {
             TargetRegistrar.#instance = new TargetRegistrar();
         }
         return TargetRegistrar.#instance;
-    }
-
-    private targets: Array<Target> = [];
-
-    register(target: Target): boolean {
-        if (this.targets.includes(target)) return false;
-        this.targets.push(target);
-        return true;
-    }
-
-    delist(target: Target): boolean {
-        if (!this.targets.includes(target)) return false;
-        const index = this.targets.indexOf(target);
-        this.targets.splice(index, 1);
-        return true;
     }
 }
 
