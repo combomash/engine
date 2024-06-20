@@ -3,9 +3,9 @@ import {Node} from '../src/pipeline/node';
 type Callback = (params: object) => object;
 
 /*
-> all nodes pass inputs along in the output object
-> node_2 adds info via globals that is passed along
-> node_1 adds more when it returns
+> all nodes return inputs in the output object
+> node_2 adds "info" via globals, passed along
+> node_1 adds "more" to the returned object
 
             node_4 -->|
 node_2 ---> node_0 ----> node_1
@@ -69,7 +69,13 @@ describe('Node', () => {
             node = nodes[1];
         });
 
-        test('providing a callback that returns additional data', () => {
+        test('providing the same label as any other node throws an Error', () => {
+            expect(() => {
+                new Node({callback, label: 'node_0'});
+            }).toThrow();
+        });
+
+        test('providing a callback that returns additional data succeeds', () => {
             const n = new Node({
                 callback: params => {
                     return {...params, more: 'more'};
@@ -368,6 +374,34 @@ describe('Node', () => {
             expect(nodes[4].output).toEqual(none);
             expect(nodes[5].output).toEqual(none);
             expect(nodes[6].output).toEqual(none);
+        });
+    });
+
+    describe('when destroying a node', () => {
+        beforeAll(() => {
+            resetAll();
+        });
+
+        test('it should unlink itself from all parents and children', () => {
+            const node = nodes[0];
+            node.destroy();
+
+            expect(node.parents.length).toBe(0);
+            expect(node.children.length).toBe(0);
+
+            expect(nodes[2].children.length).toBe(2);
+            expect(nodes[2].children.includes(node)).toBeFalsy();
+
+            expect(nodes[1].parents.length).toBe(2);
+            expect(nodes[1].parents.includes(node)).toBeFalsy();
+
+            nodes.splice(nodes.indexOf(node), 0);
+        });
+
+        test('once removed, it should allow a new Node to be created with the same label', () => {
+            expect(() => {
+                new Node({callback, label: 'node_0'});
+            }).not.toThrow();
         });
     });
 });

@@ -1,3 +1,5 @@
+import {Registrar} from '../core/registrar';
+
 type Callback = (params: object) => object;
 
 interface Params {
@@ -9,6 +11,19 @@ interface Params {
 }
 
 let i = 0;
+
+class NodeRegistrar extends Registrar {
+    static #instance: NodeRegistrar;
+    private constructor() {
+        super();
+    }
+    static get instance(): NodeRegistrar {
+        if (!NodeRegistrar.#instance) {
+            NodeRegistrar.#instance = new NodeRegistrar();
+        }
+        return NodeRegistrar.#instance;
+    }
+}
 
 export class Node {
     label: string;
@@ -38,11 +53,15 @@ export class Node {
 
     constructor({label, callback, parents = [], children = [], globals = {}}: Params) {
         this.label = label ?? `node_${i}`;
+        if (!NodeRegistrar.instance.register(this.label)) {
+            throw new Error(`Node ${label} has already been created (must have unique label)`);
+        }
+        i++;
+
         for (const parent of parents) this.linkParent(parent);
         for (const child of children) this.linkChild(child);
         this.globals = globals;
         this.callback = callback;
-        i++;
     }
 
     isChildOf(node: Node) {
@@ -140,4 +159,15 @@ export class Node {
             child.execute();
         }
     }
+
+    destroy() {
+        NodeRegistrar.instance.delist(this.label);
+        for (const parent of this.#parents) this.unlinkParent(parent);
+        for (const child of this.#children) this.unlinkChild(child);
+    }
+
+    // TODO destroy (remove from registrar)
+    // > remove from Registrar
+    // > remove itself from all parents
+    // > remove itself from all children
 }
