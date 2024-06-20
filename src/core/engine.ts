@@ -5,6 +5,15 @@ import {EntityManager} from './entity-manager';
 import * as I from './engine.interface';
 import * as E from './engine.errors';
 
+interface InitParams {
+    canvas?: HTMLCanvasElement;
+    aspectRatio?: number;
+    devicePixelRatio?: number;
+    debounceResizeMs?: number;
+    canToggleFullscreen?: boolean;
+    css?: string;
+}
+
 class Engine {
     constructor() {}
 
@@ -35,7 +44,7 @@ class Engine {
         this.needsResize = true;
     };
 
-    async init(params: I.InitializeParams = {}) {
+    async init(params: InitParams = {}) {
         if (this.isInitialized) throw new Error(E.IS_INITIALIZED);
 
         const css = document.createElement('style');
@@ -57,7 +66,7 @@ class Engine {
             height: window.innerHeight,
             aspectRatio: params.aspectRatio ?? window.innerWidth / window.innerHeight,
             devicePixelRatio: params.devicePixelRatio ?? (window.devicePixelRatio || 1),
-            fillMode: params.aspectRatio ? 'aspect' : 'fill',
+            mode: params.aspectRatio ? 'aspect' : 'fill',
         };
 
         if ('canToggleFullscreen' in params) {
@@ -122,7 +131,7 @@ class Engine {
 
         const width = window.innerWidth;
         const height = window.innerHeight;
-        const aspectRatio = this.#resolution.fillMode === 'aspect' ? this.#resolution.aspectRatio : width / height;
+        const aspectRatio = this.#resolution.mode === 'aspect' ? this.#resolution.aspectRatio : width / height;
         const devicePixelRatio = this.#resolution.devicePixelRatio;
 
         const DIM = {

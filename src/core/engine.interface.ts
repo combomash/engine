@@ -24,22 +24,13 @@ export interface Resolution {
     height: number;
     aspectRatio: number;
     devicePixelRatio: number;
-    fillMode: 'fill' | 'aspect';
+    mode: 'fill' | 'aspect';
 }
 
 export interface FrameData {
     deltaTime: number;
     elapsedTime: number;
     resolution: Resolution;
-}
-
-export interface InitializeParams {
-    canvas?: HTMLCanvasElement;
-    aspectRatio?: number;
-    devicePixelRatio?: number;
-    debounceResizeMs?: number;
-    canToggleFullscreen?: boolean;
-    css?: string;
 }
 
 export interface StartParams {}
