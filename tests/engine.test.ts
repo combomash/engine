@@ -1,6 +1,5 @@
 import {Engine} from '../src';
 import * as ERR from '../src/core/engine.errors';
-import {Resolution} from '../src/core/engine.interface';
 
 describe('Engine', () => {
     let engine: Engine | null;

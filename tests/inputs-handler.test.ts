@@ -1,9 +1,9 @@
-import {InputHandler} from '../src/core/input-handler';
+import {InputsHandler} from '../src';
 
 describe('Input Handler', () => {
     let div: HTMLElement;
     let canvas: HTMLCanvasElement;
-    let inputHandlers: {[key: string]: InputHandler} = {};
+    let inputsHandlers: {[key: string]: InputsHandler} = {};
 
     beforeAll(() => {
         div = document.createElement('div');
@@ -20,52 +20,52 @@ describe('Input Handler', () => {
 
     describe('can create', () => {
         test('with "window" as target', () => {
-            let inputHandler!: InputHandler;
+            let inputHandler!: InputsHandler;
             expect(() => {
-                inputHandler = new InputHandler({
+                inputHandler = new InputsHandler({
                     target: window,
                 });
             }).not.toThrow();
-            inputHandlers['window'] = inputHandler;
+            inputsHandlers['window'] = inputHandler;
         });
 
         test('with "document" as target', () => {
-            let inputHandler!: InputHandler;
+            let inputHandler!: InputsHandler;
             expect(() => {
-                inputHandler = new InputHandler({
+                inputHandler = new InputsHandler({
                     target: document,
                 });
             }).not.toThrow();
-            inputHandlers['document'] = inputHandler;
+            inputsHandlers['document'] = inputHandler;
         });
 
         test('with "canvas" as target', () => {
-            let inputHandler!: InputHandler;
+            let inputHandler!: InputsHandler;
             expect(() => {
-                inputHandler = new InputHandler({
+                inputHandler = new InputsHandler({
                     target: canvas,
                 });
             }).not.toThrow();
-            inputHandlers['canvas'] = inputHandler;
+            inputsHandlers['canvas'] = inputHandler;
         });
 
         test('with "div" as target', () => {
-            let inputHandler!: InputHandler;
+            let inputHandler!: InputsHandler;
             expect(() => {
-                inputHandler = new InputHandler({
+                inputHandler = new InputsHandler({
                     target: div,
                 });
             }).not.toThrow();
-            inputHandlers['div'] = inputHandler;
+            inputsHandlers['div'] = inputHandler;
         });
 
         test('width a second "div" as target, then destroy to cleanup', () => {
             const elem = document.createElement('div');
 
-            let inputHandler!: InputHandler;
+            let inputHandler!: InputsHandler;
 
             expect(() => {
-                inputHandler = new InputHandler({
+                inputHandler = new InputsHandler({
                     target: elem,
                 });
             }).not.toThrow();
@@ -79,7 +79,7 @@ describe('Input Handler', () => {
     describe('cannot create duplicate', () => {
         test('"window" as target', () => {
             expect(() => {
-                new InputHandler({
+                new InputsHandler({
                     target: window,
                 });
             }).toThrow();
@@ -87,7 +87,7 @@ describe('Input Handler', () => {
 
         test('"document" as target', () => {
             expect(() => {
-                new InputHandler({
+                new InputsHandler({
                     target: document,
                 });
             }).toThrow();
@@ -95,7 +95,7 @@ describe('Input Handler', () => {
 
         test('"canvas" as target', () => {
             expect(() => {
-                new InputHandler({
+                new InputsHandler({
                     target: canvas,
                 });
             }).toThrow();
@@ -103,69 +103,69 @@ describe('Input Handler', () => {
 
         test('"div" as target', () => {
             expect(() => {
-                new InputHandler({
+                new InputsHandler({
                     target: div,
                 });
             }).toThrow();
         });
     });
 
-    test('can destroy the "document" InputHandler and create a new one with the same "document" element', () => {
-        let inputHandler = inputHandlers['document'];
+    test('can destroy the "document" InputsHandler and create a new one with the same "document" element', () => {
+        let inputHandler = inputsHandlers['document'];
 
         expect(() => {
             inputHandler.destroy();
         }).not.toThrow();
 
-        delete inputHandlers['document'];
+        delete inputsHandlers['document'];
 
         expect(() => {
-            inputHandler = new InputHandler({
+            inputHandler = new InputsHandler({
                 target: document,
             });
         }).not.toThrow();
 
-        inputHandlers['document'] = inputHandler;
+        inputsHandlers['document'] = inputHandler;
     });
 
     describe('when destroying...', () => {
         test('can destroy with "div" target', () => {
-            let inputHandler = inputHandlers['div'];
+            let inputHandler = inputsHandlers['div'];
             expect(() => {
                 inputHandler.destroy();
             }).not.toThrow();
         });
 
         test('calling destroy() on already destroyed throws an Error', () => {
-            let inputHandler = inputHandlers['div'];
+            let inputHandler = inputsHandlers['div'];
             expect(() => {
                 inputHandler.destroy();
             }).toThrow();
-            delete inputHandlers['div'];
+            delete inputsHandlers['div'];
         });
 
         test('can destroy with "window" target', () => {
-            let inputHandler = inputHandlers['window'];
+            let inputHandler = inputsHandlers['window'];
             expect(() => {
                 inputHandler.destroy();
             }).not.toThrow();
-            delete inputHandlers['window'];
+            delete inputsHandlers['window'];
         });
 
         test('can destroy with "canvas" target', () => {
-            let inputHandler = inputHandlers['canvas'];
+            let inputHandler = inputsHandlers['canvas'];
             expect(() => {
                 inputHandler.destroy();
             }).not.toThrow();
-            delete inputHandlers['canvas'];
+            delete inputsHandlers['canvas'];
         });
 
         test('can destroy with "document" target', () => {
-            let inputHandler = inputHandlers['document'];
+            let inputHandler = inputsHandlers['document'];
             expect(() => {
                 inputHandler.destroy();
             }).not.toThrow();
-            delete inputHandlers['document'];
+            delete inputsHandlers['document'];
         });
     });
 });

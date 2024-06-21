@@ -1,40 +1,23 @@
-import {Entity} from './entity-manager-interfaces';
-import {Bind} from './input-handler.interfaces';
-import {supportedEvents, validActions, validKeyCodes, validMouseEvents, validTouchEvents} from './input-handler.constants';
+import {Registrar} from '../core/registrar';
+import {Bind, Entity, Command} from '../core/engine.interface';
+import {supportedEvents, validActions, validKeyCodes, validMouseEvents, validTouchEvents} from './inputs-handler.constants';
 
 export type Target = Window | Document | HTMLCanvasElement | HTMLElement;
 
-export interface Command {
-    execute(): void;
-}
-
-class TargetRegistrar {
+class TargetRegistrar extends Registrar {
     static #instance: TargetRegistrar;
-    private constructor() {}
+    private constructor() {
+        super();
+    }
     static get instance(): TargetRegistrar {
         if (!TargetRegistrar.#instance) {
             TargetRegistrar.#instance = new TargetRegistrar();
         }
         return TargetRegistrar.#instance;
     }
-
-    private targets: Array<Target> = [];
-
-    register(target: Target): boolean {
-        if (this.targets.includes(target)) return false;
-        this.targets.push(target);
-        return true;
-    }
-
-    delist(target: Target): boolean {
-        if (!this.targets.includes(target)) return false;
-        const index = this.targets.indexOf(target);
-        this.targets.splice(index, 1);
-        return true;
-    }
 }
 
-export class InputHandler implements Entity {
+export class InputsHandler implements Entity {
     isActive: boolean = true;
 
     private target: Target;
@@ -223,7 +206,7 @@ export class InputHandler implements Entity {
 
     destroy() {
         if (!TargetRegistrar.instance.delist(this.target)) {
-            throw new Error('InputHandler has already been destroyed');
+            throw new Error('InputsHandler has already been destroyed');
         }
         for (const key of Object.keys(this.eventListeners)) {
             this.target.removeEventListener(key, this.eventListeners[key]);
