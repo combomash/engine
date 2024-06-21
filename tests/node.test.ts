@@ -15,6 +15,10 @@ node_2 ---> node_0 ----> node_1
 node_6
 */
 
+const none = {};
+const info = {info: 'info'};
+const more = {...info, more: 'more'};
+
 describe('Node', () => {
     let node: Node;
     let nodes: Array<Node> = [];
@@ -331,10 +335,6 @@ describe('Node', () => {
     });
 
     describe('when executing the full graph', () => {
-        const none = {};
-        const info = {info: 'info'};
-        const more = {...info, more: 'more'};
-
         beforeAll(() => {
             resetAll();
             nodes[2].execute();
@@ -379,7 +379,9 @@ describe('Node', () => {
 
     describe('when destroying a node', () => {
         beforeAll(() => {
-            resetAll();
+            nodes[2].execute();
+            nodes[4].execute();
+            nodes[6].execute();
         });
 
         test('it should unlink itself from all parents and children', () => {
@@ -388,6 +390,8 @@ describe('Node', () => {
 
             expect(node.parents.length).toBe(0);
             expect(node.children.length).toBe(0);
+            expect(node.hasExecuted).toBeFalsy();
+            expect(node.output).toEqual(none);
 
             expect(nodes[2].children.length).toBe(2);
             expect(nodes[2].children.includes(node)).toBeFalsy();

@@ -164,10 +164,11 @@ export class Node {
         NodeRegistrar.instance.delist(this.label);
         for (const parent of this.#parents) this.unlinkParent(parent);
         for (const child of this.#children) this.unlinkChild(child);
+        this.callback = ({}) => {
+            return {};
+        };
+        this.#hasExecuted = false;
+        this.globals = {};
+        this.#output = {};
     }
-
-    // TODO destroy (remove from registrar)
-    // > remove from Registrar
-    // > remove itself from all parents
-    // > remove itself from all children
 }
