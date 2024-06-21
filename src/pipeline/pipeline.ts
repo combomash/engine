@@ -1,5 +1,6 @@
 import {Node} from './node';
 import {Utils} from '../helpers/utils';
+import {Registrar} from '../core/registrar';
 
 interface Params {
     label?: string;
@@ -8,9 +9,18 @@ interface Params {
 
 let i = 0;
 
-// TODO - add a Registrar requiring a unique Pipeline name
-
-// TODO - make sure Nodes cannot be registered to multiple Pipelines
+class PipelineRegistrar extends Registrar {
+    static #instance: PipelineRegistrar;
+    private constructor() {
+        super();
+    }
+    static get instance(): PipelineRegistrar {
+        if (!PipelineRegistrar.#instance) {
+            PipelineRegistrar.#instance = new PipelineRegistrar();
+        }
+        return PipelineRegistrar.#instance;
+    }
+}
 
 export class Pipeline {
     label: string;
@@ -37,11 +47,22 @@ export class Pipeline {
         for (const node of nodes) this.#nodes.push(node);
         this.validate();
         i++;
+
+        PipelineRegistrar.instance.register(this);
     }
 
     private validate() {
         // Zero nodes
         if (this.#nodes.length === 0) throw Error('At least one Node required');
+
+        // Nodes cannot be registered in another Pipeline
+        for (const record of PipelineRegistrar.instance.records) {
+            for (const recordNode of record.nodes) {
+                for (const node of this.#nodes) {
+                    if (node === recordNode) throw Error(`Nodes can only belong to a single Pipeline`);
+                }
+            }
+        }
 
         // No duplicates
         if (Utils.hasDuplicateObjects(this.#nodes)) throw Error('No duplicate Nodes allowed');
@@ -130,5 +151,6 @@ export class Pipeline {
         this.#nodes.length = 0;
         this.execNodes.length = 0;
         this.#hasExecuted = false;
+        PipelineRegistrar.instance.delist(this);
     }
 }

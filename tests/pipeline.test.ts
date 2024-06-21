@@ -196,6 +196,21 @@ describe('Pipeline', () => {
         });
     });
 
+    describe('when creating a second Pipeline', () => {
+        test('it should fail if using nodes in another Pipeline', () => {
+            expect(() => {
+                new Pipeline({nodes});
+            }).toThrow();
+        });
+
+        test('it should work given new Nodes', () => {
+            const n = new Node({callback});
+            const p = new Pipeline({nodes: [n]});
+            expect(p).toBeInstanceOf(Pipeline);
+            p.destroy();
+        });
+    });
+
     describe('when destroying a Pipeline', () => {
         test('it should succeed', () => {
             expect(() => {
