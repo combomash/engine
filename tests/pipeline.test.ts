@@ -45,7 +45,7 @@ describe('Pipeline', () => {
         expect(nodes[6].children.length).toBe(0);
     });
 
-    describe('When creating a Pipeline', () => {
+    describe('when creating a Pipeline', () => {
         test('it fails when providing zero Nodes', () => {
             expect(() => {
                 new Pipeline({nodes: []});
@@ -129,6 +129,18 @@ describe('Pipeline', () => {
             nodes.splice(nodes.length - 1, 1);
 
             expect(nodes.length).toBe(7);
+        });
+
+        test('it fails if Nodes are connected to Nodes not in the list', () => {
+            // Parent
+            expect(() => {
+                new Pipeline({nodes: [nodes[0], nodes[1], nodes[2], nodes[3], nodes[5], nodes[6]]});
+            }).toThrow();
+
+            // Child
+            expect(() => {
+                new Pipeline({nodes: [nodes[0], nodes[1], nodes[2], nodes[3], nodes[4], nodes[6]]});
+            }).toThrow();
         });
 
         test('it succeeds when creating with the valid node array', () => {

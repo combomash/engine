@@ -67,14 +67,17 @@ export class Pipeline {
         // No duplicates
         if (Utils.hasDuplicateObjects(this.#nodes)) throw Error('No duplicate Nodes allowed');
 
-        // No orphans (children != parents)
+        // No orphans (children != parents) or links outside the pipeline's nodes
         for (const node of this.#nodes) {
             for (const parent of node.parents) {
                 if (!parent.isParentOf(node)) throw Error(`Nodes ${node.label} and ${parent.label} have a broken Parent/Child connection`);
+                if (!this.#nodes.includes(parent)) throw Error(`Node ${parent.label} was not provided to the Pipeline to execute`);
             }
 
-            for (const child of node.children)
+            for (const child of node.children) {
                 if (!child.isChildOf(node)) throw Error(`Nodes ${node.label} and ${child.label} have a broken Child/Parent connection`);
+                if (!this.#nodes.includes(child)) throw Error(`Node ${child.label} was not provided to the Pipeline to execute`);
+            }
         }
 
         // Identify exec Nodes
