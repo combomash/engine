@@ -208,10 +208,10 @@ class Engine {
     }
 
     private destroy() {
-        this.#canvas?.remove();
-        this.clock?.destroy();
         window.removeEventListener('resize', this.handleResize);
         this.entityManager?.destroy({});
+        this.clock?.destroy();
+        this.#canvas?.remove();
     }
 }
 
