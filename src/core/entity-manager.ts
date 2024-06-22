@@ -58,9 +58,9 @@ export class EntityManager {
     }
 
     destroy(params: DestroyParams) {
-        for (const entity of this.entities) {
-            entity.isActive = false;
-            entity.destroy?.(params);
+        for (let i = this.entities.length - 1; i >= 0; i--) {
+            this.entities[i].isActive = false;
+            this.entities[i].destroy?.(params);
         }
     }
 }
