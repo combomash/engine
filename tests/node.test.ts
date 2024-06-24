@@ -1,4 +1,4 @@
-import {Node, NodeCallback} from '../src/pipeline/node';
+import {Node, NodeCallback} from '../src/workflow/node';
 
 /*
 > all nodes return inputs in the output object

@@ -1,5 +1,5 @@
-import {Node, NodeCallback} from '../src/pipeline/node';
-import {Pipeline} from '../src/pipeline/pipeline';
+import {Node, NodeCallback} from '../src/workflow/node';
+import {Pipeline} from '../src/workflow/pipeline';
 
 const callback: NodeCallback = () => {};
 

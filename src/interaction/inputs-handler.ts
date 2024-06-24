@@ -1,4 +1,4 @@
-import {Registrar} from '../core/registrar';
+import {Registrar} from '../helpers/registrar';
 import {Bind, Entity, Command} from '../core/engine.interface';
 import {supportedEvents, validActions, validKeyCodes, validMouseEvents, validTouchEvents} from './inputs-handler.constants';
 

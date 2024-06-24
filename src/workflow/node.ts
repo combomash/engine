@@ -1,4 +1,4 @@
-import {Registrar} from '../core/registrar';
+import {Registrar} from '../helpers/registrar';
 
 export type NodeCallback = (params: {[key: string]: any}) => any;
 

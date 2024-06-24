@@ -1,6 +1,6 @@
 import {Node} from './node';
 import {Utils} from '../helpers/utils';
-import {Registrar} from '../core/registrar';
+import {Registrar} from '../helpers/registrar';
 
 interface Params {
     label?: string;

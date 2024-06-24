@@ -1,6 +1,6 @@
 import {Clock} from './clock';
 import {Utils} from '../helpers/utils';
-import {EntityManager} from './entity-manager';
+import {EntityManager} from '../managers/entity-manager';
 
 import * as I from './engine.interface';
 import * as E from './engine.errors';

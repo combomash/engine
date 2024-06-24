@@ -1,5 +1,5 @@
-import {Random} from '../src/core/random';
-import {PRNG_TYPE} from '../src/core/prng';
+import {Random} from '../src/stochastic/random';
+import {PRNG_TYPE} from '../src/stochastic/prng';
 
 const count = 10;
 const iters = (callback: () => void) => {
