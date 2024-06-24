@@ -14,6 +14,8 @@ interface InitParams {
     css?: string;
 }
 
+interface RunParams {}
+
 class Engine {
     constructor() {}
 
@@ -44,35 +46,28 @@ class Engine {
         this.needsResize = true;
     };
 
-    async init(params: InitParams = {}) {
+    async init({canvas, aspectRatio, devicePixelRatio, debounceResizeMs, canToggleFullscreen, css}: InitParams = {}) {
         if (this.isInitialized) throw new Error(E.IS_INITIALIZED);
 
-        const css = document.createElement('style');
-        css.innerHTML = `
-            *{margin:0;padding:0;overflow:clip;background: #000;height:100%;}
-            body{display:flex;justify-content:center;align-items:center;}
-            ${params.css ?? ''}
-            `;
-        document.body.appendChild(css);
+        const CSS = document.createElement('style');
+        CSS.innerHTML = `*{margin:0;padding:0;overflow:clip;background:#000;height:100%;}body{display:flex;justify-content:center;align-items:center;}${css ?? ''}`;
+        document.body.appendChild(CSS);
 
-        this.handleResize = Utils.debounce(this.setNeedsResize.bind(this), params.debounceResizeMs ?? 0);
+        this.handleResize = Utils.debounce(this.setNeedsResize.bind(this), debounceResizeMs ?? 0);
         window.addEventListener('resize', this.handleResize);
 
-        this.#canvas = params.canvas ?? document.createElement('canvas');
+        this.#canvas = canvas ?? document.createElement('canvas');
         document.body.appendChild(this.#canvas);
 
         this.#resolution = {
             width: window.innerWidth,
             height: window.innerHeight,
-            aspectRatio: params.aspectRatio ?? window.innerWidth / window.innerHeight,
-            devicePixelRatio: params.devicePixelRatio ?? (window.devicePixelRatio || 1),
-            mode: params.aspectRatio ? 'aspect' : 'fill',
+            aspectRatio: aspectRatio ?? window.innerWidth / window.innerHeight,
+            devicePixelRatio: devicePixelRatio ?? (window.devicePixelRatio || 1),
+            mode: aspectRatio ? 'aspect' : 'fill',
         };
 
-        if ('canToggleFullscreen' in params) {
-            console.log('here');
-            this.canToggleFullscreen = params.canToggleFullscreen ?? this.canToggleFullscreen;
-        }
+        this.canToggleFullscreen = canToggleFullscreen ?? true;
 
         this.clock = new Clock();
 
@@ -83,7 +78,7 @@ class Engine {
 
     private resolve: () => void = () => {};
 
-    async run() {
+    async run({}: RunParams = {}) {
         if (!this.isInitialized) throw new Error(E.NOT_INITIALIZED);
         if (this.isActive) throw new Error(E.IS_RUNNING);
         return new Promise<void>(resolve => {
