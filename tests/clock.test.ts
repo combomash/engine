@@ -26,6 +26,18 @@ describe('Clock', () => {
         expect(Clock.now()).toBe(1000);
     });
 
+    test('setting the initial elapsed time (ms) succeeds', () => {
+        expect(() => {
+            clock.setInitialElapsedTime(1000);
+        }).not.toThrow();
+        expect(clock.elapsed).toEqual(1000);
+
+        expect(() => {
+            clock.setInitialElapsedTime(0);
+        }).not.toThrow();
+        expect(clock.elapsed).toEqual(0);
+    });
+
     describe('after creating a clock', () => {
         test('isActive should be false', () => {
             expect(clock.isActive).toBe(false);
@@ -62,6 +74,12 @@ describe('Clock', () => {
         test('delta should be zero', () => {
             expect(clock.delta).toBe(0);
         });
+
+        test('setting the initial elapsed time fails', () => {
+            expect(() => {
+                clock.setInitialElapsedTime(1000);
+            }).toThrow();
+        });
     });
 
     describe('after calling tick()', () => {
@@ -69,12 +87,18 @@ describe('Clock', () => {
             clock.tick();
         });
 
-        test('elapsed should be one (1)', () => {
-            expect(clock.elapsed).toBe(1);
+        test('elapsed should be one thousand ms (1000)', () => {
+            expect(clock.elapsed).toBe(1000);
         });
 
-        test('delta should be one (1)', () => {
-            expect(clock.delta).toBe(1);
+        test('delta should be one thousand ms (1000)', () => {
+            expect(clock.delta).toBe(1000);
+        });
+
+        test('setting the initial elapsed time fails', () => {
+            expect(() => {
+                clock.setInitialElapsedTime(1000);
+            }).toThrow();
         });
     });
 
@@ -83,12 +107,12 @@ describe('Clock', () => {
             clock.tick();
         });
 
-        test('elapsed should be two (2)', () => {
-            expect(clock.elapsed).toBe(2);
+        test('elapsed should be two thousand ms (2000)', () => {
+            expect(clock.elapsed).toBe(2000);
         });
 
-        test('delta should be one (1)', () => {
-            expect(clock.delta).toBe(1);
+        test('delta should be one thousand ms (1000)', () => {
+            expect(clock.delta).toBe(1000);
         });
     });
 
@@ -101,8 +125,8 @@ describe('Clock', () => {
             expect(clock.isActive).toBe(false);
         });
 
-        test('elapsed should be two (2)', () => {
-            expect(clock.elapsed).toBe(2);
+        test('elapsed should be two thousand ms (2000)', () => {
+            expect(clock.elapsed).toBe(2000);
         });
 
         test('delta should be zero', () => {
@@ -112,8 +136,14 @@ describe('Clock', () => {
         test('tick() should have no affect on values', () => {
             clock.tick();
             expect(clock.isActive).toBe(false);
-            expect(clock.elapsed).toBe(2);
+            expect(clock.elapsed).toBe(2000);
             expect(clock.delta).toBe(0);
+        });
+
+        test('setting the initial elapsed time fails', () => {
+            expect(() => {
+                clock.setInitialElapsedTime(1000);
+            }).toThrow();
         });
     });
 
@@ -124,12 +154,12 @@ describe('Clock', () => {
             clock.tick();
         });
 
-        test('elapsed should be three (4)', () => {
-            expect(clock.elapsed).toBe(4);
+        test('elapsed should be four thousand ms (4000)', () => {
+            expect(clock.elapsed).toBe(4000);
         });
 
-        test('delta should be one (1)', () => {
-            expect(clock.delta).toBe(1);
+        test('delta should be one thousand ms (1000)', () => {
+            expect(clock.delta).toBe(1000);
         });
     });
 
@@ -154,6 +184,13 @@ describe('Clock', () => {
             clock.tick();
             expect(clock.delta).toBe(0);
             expect(clock.elapsed).toBe(0);
+        });
+
+        test('setting the initial elapsed time succeeds', () => {
+            expect(() => {
+                clock.setInitialElapsedTime(1000);
+            }).not.toThrow();
+            expect(clock.elapsed).toBe(1000);
         });
     });
 });

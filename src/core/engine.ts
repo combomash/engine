@@ -5,17 +5,6 @@ import {EntityManager} from '../managers/entity-manager';
 import * as I from './engine.interface';
 import * as E from './engine.errors';
 
-interface InitParams {
-    canvas?: HTMLCanvasElement;
-    aspectRatio?: number;
-    devicePixelRatio?: number;
-    debounceResizeMs?: number;
-    canToggleFullscreen?: boolean;
-    css?: string;
-}
-
-interface RunParams {}
-
 class Engine {
     constructor() {}
 
@@ -29,16 +18,19 @@ class Engine {
         return this.#resolution;
     }
 
+    entityManager!: EntityManager;
+
     private clock!: Clock;
+    private mode: I.Mode = 'runtime';
     private frameData!: I.FrameData;
 
     private isActive: boolean = false;
+    private isDestroyed: boolean = false;
     private needsResize: boolean = false;
     private isInitialized: boolean = false;
-    private canToggleFullscreen: boolean = true;
+    private canToggleFullscreen!: boolean;
+    private keepCanvasOnDestroy!: boolean;
     private doShutdown: boolean = false;
-
-    entityManager!: EntityManager;
 
     private handleResize!: () => void;
 
@@ -46,7 +38,7 @@ class Engine {
         this.needsResize = true;
     };
 
-    async init({canvas, aspectRatio, devicePixelRatio, debounceResizeMs, canToggleFullscreen, css}: InitParams = {}) {
+    async init({css, canvas, aspectRatio, devicePixelRatio, debounceResizeMs, canToggleFullscreen, keepCanvasOnDestroy, runConfig}: I.InitConfig = {}) {
         if (this.isInitialized) throw new Error(E.IS_INITIALIZED);
 
         const CSS = document.createElement('style');
@@ -64,22 +56,40 @@ class Engine {
             height: window.innerHeight,
             aspectRatio: aspectRatio ?? window.innerWidth / window.innerHeight,
             devicePixelRatio: devicePixelRatio ?? (window.devicePixelRatio || 1),
-            mode: aspectRatio ? 'aspect' : 'fill',
+            method: aspectRatio ? 'aspect' : 'fill',
         };
 
         this.canToggleFullscreen = canToggleFullscreen ?? true;
+        this.keepCanvasOnDestroy = keepCanvasOnDestroy ?? false;
 
         this.clock = new Clock();
 
         this.entityManager = new EntityManager();
+
+        if (runConfig) {
+            this.mode = runConfig.mode;
+            if (this.mode === 'frame') {
+                if ('framerate' in runConfig && 'startFrame' in runConfig) {
+                    const {framerate, startFrame} = runConfig;
+                    if (!Number.isInteger(startFrame)) throw Error('startFrame must be an integer');
+                    const msPerFrame = 1000 / framerate;
+                    const elapsedMs = msPerFrame * startFrame;
+                    this.clock.setInitialElapsedTime(elapsedMs);
+                    this.doShutdown = true;
+                } else {
+                    throw Error('framerate (fps) and startFrame (int) are required for "frame" runConfig');
+                }
+            }
+        }
 
         this.isInitialized = true;
     }
 
     private resolve: () => void = () => {};
 
-    async run({}: RunParams = {}) {
+    async run() {
         if (!this.isInitialized) throw new Error(E.NOT_INITIALIZED);
+        if (this.isDestroyed) throw new Error(E.IS_DESTROYED);
         if (this.isActive) throw new Error(E.IS_RUNNING);
         return new Promise<void>(resolve => {
             this.resolve = resolve;
@@ -95,8 +105,8 @@ class Engine {
     private start() {
         this.isActive = true;
         this.needsResize = true;
-        this.clock.start();
         this.entityManager.start({});
+        if (this.mode === 'runtime') this.clock.start();
         window.requestAnimationFrame(() => {
             this.tick();
         });
@@ -109,7 +119,7 @@ class Engine {
         this.lateUpdate();
         this.execute();
 
-        if (this.isActive) {
+        if (this.isActive && this.mode === 'runtime') {
             window.requestAnimationFrame(() => {
                 this.tick();
             });
@@ -126,7 +136,7 @@ class Engine {
 
         const width = window.innerWidth;
         const height = window.innerHeight;
-        const aspectRatio = this.#resolution.mode === 'aspect' ? this.#resolution.aspectRatio : width / height;
+        const aspectRatio = this.#resolution.method === 'aspect' ? this.#resolution.aspectRatio : width / height;
         const devicePixelRatio = this.#resolution.devicePixelRatio;
 
         const DIM = {
@@ -203,10 +213,11 @@ class Engine {
     }
 
     private destroy() {
+        this.isDestroyed = true;
         window.removeEventListener('resize', this.handleResize);
         this.entityManager?.destroy({});
         this.clock?.destroy();
-        this.#canvas?.remove();
+        if (!this.keepCanvasOnDestroy) this.#canvas?.remove();
     }
 }
 

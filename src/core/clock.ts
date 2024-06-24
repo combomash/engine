@@ -1,5 +1,6 @@
 export class Clock {
     #isActive: boolean = false;
+    #isAtRest: boolean = true;
     #previous: number = 0;
     #current: number = 0;
     #start: number = 0;
@@ -25,11 +26,16 @@ export class Clock {
     }
 
     get delta() {
-        return this.#delta / 1000;
+        return this.#delta;
     }
 
     get elapsed() {
-        return this.#elapsed / 1000;
+        return this.#elapsed;
+    }
+
+    setInitialElapsedTime(ms: number) {
+        if (!this.#isAtRest) throw Error('Clock must not be active and reset() to set initial elapsed time');
+        this.#elapsed = ms;
     }
 
     start() {
@@ -38,6 +44,7 @@ export class Clock {
         this.#start = now;
         this.#current = now - this.#start;
         this.#isActive = true;
+        this.#isAtRest = false;
     }
 
     stop() {
@@ -48,6 +55,7 @@ export class Clock {
 
     reset() {
         this.#isActive = false;
+        this.#isAtRest = true;
         this.#previous = 0;
         this.#current = 0;
         this.#start = 0;
