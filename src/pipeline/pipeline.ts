@@ -5,6 +5,7 @@ import {Registrar} from '../core/registrar';
 interface Params {
     label?: string;
     nodes: Array<Node>;
+    globals?: {[key: string]: any};
 }
 
 let i = 0;
@@ -23,7 +24,10 @@ class PipelineRegistrar extends Registrar {
 }
 
 export class Pipeline {
-    label: string;
+    #label: string;
+    get label() {
+        return this.#label;
+    }
 
     #nodes: Array<Node> = [];
     get nodes() {
@@ -40,10 +44,16 @@ export class Pipeline {
         return this.#outputs;
     }
 
+    #globals: object;
+    get globals() {
+        return this.#globals;
+    }
+
     private execNodes: Array<Node> = [];
 
-    constructor({label, nodes = []}: Params) {
-        this.label = label ?? `pipeline_${i}`;
+    constructor({label, nodes = [], globals}: Params) {
+        this.#label = label ?? `pipeline_${i}`;
+        this.#globals = globals ?? {};
         for (const node of nodes) this.#nodes.push(node);
         this.validate();
         i++;
@@ -137,8 +147,9 @@ export class Pipeline {
         if (this.#hasExecuted) return;
 
         for (const node of this.execNodes) {
-            node.execute();
+            node.execute(this.#globals);
         }
+
         for (const node of this.#nodes) {
             this.#outputs[node.label] = node.output;
         }

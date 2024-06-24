@@ -1,13 +1,12 @@
 import {Registrar} from '../core/registrar';
 
-type Callback = (params: object) => object;
+export type NodeCallback = (params: {[key: string]: any}) => any;
 
 interface Params {
     label?: string;
     parents?: Array<Node>;
     children?: Array<Node>;
-    globals?: object;
-    callback: Callback;
+    callback: NodeCallback;
 }
 
 let i = 0;
@@ -28,8 +27,7 @@ class NodeRegistrar extends Registrar {
 export class Node {
     label: string;
 
-    private callback: Callback;
-    private globals: object = {};
+    private callback: NodeCallback;
 
     #parents: Array<Node> = [];
     get parents() {
@@ -48,10 +46,10 @@ export class Node {
 
     #output: object = {};
     get output() {
-        return this.#output;
+        return this.#output ?? {};
     }
 
-    constructor({label, callback, parents = [], children = [], globals = {}}: Params) {
+    constructor({label, callback, parents = [], children = []}: Params) {
         this.label = label ?? `node_${i}`;
         if (!NodeRegistrar.instance.register(this.label)) {
             throw new Error(`Node ${label} has already been created (must have unique label)`);
@@ -60,7 +58,6 @@ export class Node {
 
         for (const parent of parents) this.linkParent(parent);
         for (const child of children) this.linkChild(child);
-        this.globals = globals;
         this.callback = callback;
     }
 
@@ -129,7 +126,7 @@ export class Node {
         this.#output = {};
     }
 
-    execute(): void {
+    execute(globals: object): void {
         if (this.hasExecuted) return;
 
         let inputs: object = {};
@@ -149,14 +146,14 @@ export class Node {
         if (!allParentsHaveExecuted) return;
 
         this.#output = this.callback({
-            ...this.globals,
+            ...globals,
             ...inputs,
         });
 
         this.#hasExecuted = true;
 
         for (const child of this.#children) {
-            child.execute();
+            child.execute({...globals});
         }
     }
 
@@ -168,7 +165,6 @@ export class Node {
             return {};
         };
         this.#hasExecuted = false;
-        this.globals = {};
         this.#output = {};
     }
 }
