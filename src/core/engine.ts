@@ -82,6 +82,8 @@ class Engine {
             }
         }
 
+        this.resize();
+
         this.isInitialized = true;
     }
 
@@ -104,7 +106,6 @@ class Engine {
 
     private start() {
         this.isActive = true;
-        this.needsResize = true;
         this.entityManager.start({});
         if (this.mode === 'runtime') this.clock.start();
         window.requestAnimationFrame(() => {
