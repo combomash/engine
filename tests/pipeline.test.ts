@@ -1,28 +1,20 @@
-import {Node} from '../src/pipeline/node';
+import {Node, NodeCallback} from '../src/pipeline/node';
 import {Pipeline} from '../src/pipeline/pipeline';
 
-const callback: (params: object) => object = params => {
-    return {...params};
-};
+const callback: NodeCallback = () => {};
 
 const none = {};
+const globals = {test: 'test'};
 
 describe('Pipeline', () => {
     let pipeline: Pipeline;
     let nodes: Array<Node> = [];
 
     beforeAll(() => {
-        // Node setup matching "node.test.ts"
+        // Hierarchy matches comment in "node.test.ts"
         nodes.push(new Node({callback}));
-        nodes.push(
-            new Node({
-                parents: [nodes[0]],
-                callback: params => {
-                    return {...params, more: 'more'};
-                },
-            }),
-        );
-        nodes.push(new Node({callback, children: [nodes[0]], globals: {info: 'info'}}));
+        nodes.push(new Node({callback, parents: [nodes[0]]}));
+        nodes.push(new Node({callback, children: [nodes[0]]}));
         nodes.push(new Node({callback, parents: [nodes[2]], children: [nodes[1]]}));
         nodes.push(new Node({callback, children: [nodes[1]]}));
         nodes.push(new Node({callback, parents: [nodes[2]]}));
@@ -152,7 +144,7 @@ describe('Pipeline', () => {
 
     describe('when executing the Pipeline', () => {
         test('before execution, outputs is an empty object', () => {
-            expect(pipeline.outputs).toEqual(none);
+            expect(pipeline.outputs).toEqual({});
         });
 
         test('execution runs succesfully, with outputs listing an object for every node', () => {
@@ -245,6 +237,37 @@ describe('Pipeline', () => {
 
         test('nodes should be an empty array', () => {
             expect(pipeline.nodes.length).toBe(0);
+        });
+    });
+
+    describe('when creating a Pipeline with Globals', () => {
+        let node: Node;
+
+        beforeAll(() => {
+            node = new Node({
+                label: 'custom',
+                callback: params => {
+                    return {...params};
+                },
+            });
+        });
+
+        afterAll(() => {
+            pipeline.destroy();
+        });
+
+        test('the globals are accepted and set', () => {
+            expect(() => {
+                pipeline = new Pipeline({nodes: [node], globals});
+            }).not.toThrow();
+            expect(pipeline.globals).toEqual(globals);
+        });
+
+        test('executing the Pipeline with a Node the returns the globals works', () => {
+            expect(() => {
+                pipeline.execute();
+            }).not.toThrow();
+            expect(pipeline.outputs['custom']).toEqual(globals);
         });
     });
 });

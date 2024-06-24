@@ -1,6 +1,4 @@
-import {Node} from '../src/pipeline/node';
-
-type Callback = (params: object) => object;
+import {Node, NodeCallback} from '../src/pipeline/node';
 
 /*
 > all nodes return inputs in the output object
@@ -15,16 +13,41 @@ node_2 ---> node_0 ----> node_1
 node_6
 */
 
-const none = {};
-const info = {info: 'info'};
-const more = {...info, more: 'more'};
+const globals = {remove: 'remove'};
+export const testNodeCallbacks: Array<NodeCallback> = [
+    // 0 - passes inputs to outputs
+    params => {
+        delete params.remove;
+        return {...params};
+    },
+    // 1 - passes inputs to outputs, adds "one"
+    params => {
+        delete params.remove;
+        return {...params, one: 'one'};
+    },
+    // 2 - returns "two"
+    () => {
+        return {two: 'two'};
+    },
+    // 3 - execute only (undefined outputs)
+    () => {},
+    // 4 - produces "four"
+    () => {
+        return {four: 'four'};
+    },
+    // 5 - passes inputs & globals to outputs, adds "five"
+    params => {
+        return {...params, five: 'five'};
+    },
+    // 6 - returns null
+    () => {
+        return null;
+    },
+];
 
 describe('Node', () => {
     let node: Node;
     let nodes: Array<Node> = [];
-    let callback: Callback = params => {
-        return {...params};
-    };
 
     describe('when creating the Node (0)', () => {
         beforeEach(() => {
@@ -32,7 +55,7 @@ describe('Node', () => {
         });
 
         test('with only a callback is a success', () => {
-            const n = new Node({callback});
+            const n = new Node({callback: testNodeCallbacks[0]});
             expect(n).toBeInstanceOf(Node);
             nodes.push(n);
         });
@@ -58,7 +81,7 @@ describe('Node', () => {
         });
 
         test('calling execute() sets hasExecuted to true', () => {
-            node.execute();
+            node.execute(globals);
             expect(node.hasExecuted).toBeTruthy();
         });
 
@@ -75,16 +98,12 @@ describe('Node', () => {
 
         test('providing the same label as any other node throws an Error', () => {
             expect(() => {
-                new Node({callback, label: 'node_0'});
+                new Node({callback: () => {}, label: 'node_0'});
             }).toThrow();
         });
 
-        test('providing a callback that returns additional data succeeds', () => {
-            const n = new Node({
-                callback: params => {
-                    return {...params, more: 'more'};
-                },
-            });
+        test('with only a callback again succeeds', () => {
+            const n = new Node({callback: testNodeCallbacks[1]});
             expect(n).toBeInstanceOf(Node);
             nodes.push(n);
         });
@@ -145,8 +164,8 @@ describe('Node', () => {
             node = nodes[2];
         });
 
-        test('providing a globals object succeeds', () => {
-            const n = new Node({callback, globals: {info: 'info'}});
+        test('creating with a callback and providing the label suceeds', () => {
+            const n = new Node({callback: testNodeCallbacks[2], label: 'node_2'});
             expect(n).toBeInstanceOf(Node);
             expect(n.label).toBe('node_2');
             nodes.push(n);
@@ -208,11 +227,11 @@ describe('Node', () => {
             node = nodes[3];
         });
 
-        test('providing node_1 as a parent and node_2 as a child succesfully links them', () => {
+        test('providing node_2 as a parent and node_1 as a child succesfully links them', () => {
             const parent = nodes[2];
             const child = nodes[1];
 
-            const node = new Node({callback, parents: [parent], children: [child]});
+            const node = new Node({callback: testNodeCallbacks[3], parents: [parent], children: [child]});
             expect(node).toBeInstanceOf(Node);
             nodes.push(node);
 
@@ -231,7 +250,7 @@ describe('Node', () => {
 
     describe('completing the node graph', () => {
         test('creating Node (4) as a root parent of node_1', () => {
-            const n = new Node({callback, children: [nodes[1]]});
+            const n = new Node({callback: testNodeCallbacks[4], children: [nodes[1]]});
             expect(n).toBeInstanceOf(Node);
             expect(n.children.length).toBe(1);
             expect(nodes[1].parents.length).toBe(3);
@@ -239,7 +258,7 @@ describe('Node', () => {
         });
 
         test('creating Node (5) as leaf child of node_2', () => {
-            const n = new Node({callback, parents: [nodes[2]]});
+            const n = new Node({callback: testNodeCallbacks[5], parents: [nodes[2]]});
             expect(n).toBeInstanceOf(Node);
             expect(n.parents.length).toBe(1);
             expect(nodes[2].children.length).toBe(3);
@@ -247,7 +266,7 @@ describe('Node', () => {
         });
 
         test('creating Node (6) as float (no parents or children), with a custom label', () => {
-            const n = new Node({callback, label: 'alone'});
+            const n = new Node({callback: testNodeCallbacks[6], label: 'alone'});
             expect(n).toBeInstanceOf(Node);
             expect(n.label).toBe('alone');
             nodes.push(n);
@@ -314,7 +333,7 @@ describe('Node', () => {
         for (const e of executions) {
             test(`Executing nodes [${e.run}] should result in [${e.has}] executing, while [${e.not}] do not`, () => {
                 for (const r of e.run) {
-                    nodes[r].execute();
+                    nodes[r].execute(globals);
                 }
 
                 const checks = new Set();
@@ -337,51 +356,51 @@ describe('Node', () => {
     describe('when executing the full graph', () => {
         beforeAll(() => {
             resetAll();
-            nodes[2].execute();
-            nodes[4].execute();
-            nodes[6].execute();
+            nodes[2].execute(globals);
+            nodes[4].execute(globals);
+            nodes[6].execute(globals);
         });
 
         test('"info" and "more" data is propagated through the graph correctly', () => {
-            expect(nodes[0].output).toEqual(info);
-            expect(nodes[1].output).toEqual(more);
-            expect(nodes[2].output).toEqual(info);
-            expect(nodes[3].output).toEqual(info);
-            expect(nodes[4].output).toEqual(none);
-            expect(nodes[5].output).toEqual(info);
-            expect(nodes[6].output).toEqual(none);
+            expect(nodes[0].output).toEqual({two: 'two'});
+            expect(nodes[1].output).toEqual({two: 'two', one: 'one', four: 'four'});
+            expect(nodes[2].output).toEqual({two: 'two'});
+            expect(nodes[3].output).toEqual({});
+            expect(nodes[4].output).toEqual({four: 'four'});
+            expect(nodes[5].output).toEqual({remove: 'remove', two: 'two', five: 'five'});
+            expect(nodes[6].output).toEqual({});
         });
 
         test('executing everything again should have no affect on the output (skips)', () => {
-            nodes[2].execute();
-            nodes[4].execute();
-            nodes[6].execute();
-            expect(nodes[0].output).toEqual(info);
-            expect(nodes[1].output).toEqual(more);
-            expect(nodes[2].output).toEqual(info);
-            expect(nodes[3].output).toEqual(info);
-            expect(nodes[4].output).toEqual(none);
-            expect(nodes[5].output).toEqual(info);
-            expect(nodes[6].output).toEqual(none);
+            nodes[2].execute(globals);
+            nodes[4].execute(globals);
+            nodes[6].execute(globals);
+            expect(nodes[0].output).toEqual({two: 'two'});
+            expect(nodes[1].output).toEqual({two: 'two', one: 'one', four: 'four'});
+            expect(nodes[2].output).toEqual({two: 'two'});
+            expect(nodes[3].output).toEqual({});
+            expect(nodes[4].output).toEqual({four: 'four'});
+            expect(nodes[5].output).toEqual({remove: 'remove', two: 'two', five: 'five'});
+            expect(nodes[6].output).toEqual({});
         });
 
         test('calling reset() will set ouput back to an empty object', () => {
             resetAll();
-            expect(nodes[0].output).toEqual(none);
-            expect(nodes[1].output).toEqual(none);
-            expect(nodes[2].output).toEqual(none);
-            expect(nodes[3].output).toEqual(none);
-            expect(nodes[4].output).toEqual(none);
-            expect(nodes[5].output).toEqual(none);
-            expect(nodes[6].output).toEqual(none);
+            expect(nodes[0].output).toEqual({});
+            expect(nodes[1].output).toEqual({});
+            expect(nodes[2].output).toEqual({});
+            expect(nodes[3].output).toEqual({});
+            expect(nodes[4].output).toEqual({});
+            expect(nodes[5].output).toEqual({});
+            expect(nodes[6].output).toEqual({});
         });
     });
 
     describe('when destroying a node', () => {
         beforeAll(() => {
-            nodes[2].execute();
-            nodes[4].execute();
-            nodes[6].execute();
+            nodes[2].execute(globals);
+            nodes[4].execute(globals);
+            nodes[6].execute(globals);
         });
 
         test('it should unlink itself from all parents and children', () => {
@@ -391,7 +410,7 @@ describe('Node', () => {
             expect(node.parents.length).toBe(0);
             expect(node.children.length).toBe(0);
             expect(node.hasExecuted).toBeFalsy();
-            expect(node.output).toEqual(none);
+            expect(node.output).toEqual({});
 
             expect(nodes[2].children.length).toBe(2);
             expect(nodes[2].children.includes(node)).toBeFalsy();
@@ -404,7 +423,7 @@ describe('Node', () => {
 
         test('once removed, it should allow a new Node to be created with the same label', () => {
             expect(() => {
-                new Node({callback, label: 'node_0'});
+                new Node({callback: () => {}, label: 'node_0'});
             }).not.toThrow();
         });
     });
