@@ -6,15 +6,31 @@ export interface FrameConfig {
     startFrame: number;
 }
 
+export interface FillFrame {
+    method: 'fill';
+    devicePixelRatio?: number;
+}
+
+export interface AspectFit {
+    method: 'aspect';
+    aspectRatio?: number;
+    devicePixelRatio?: number;
+}
+
+export interface ExactResolution {
+    method: 'exact';
+    width: number;
+    height: number;
+}
+
 export interface InitConfig {
     css?: string;
     canvas?: HTMLCanvasElement;
-    aspectRatio?: number;
-    devicePixelRatio?: number;
     debounceResizeMs?: number;
     canToggleFullscreen?: boolean;
     keepCanvasOnDestroy?: boolean;
     runConfig?: {mode: 'runtime'} | FrameConfig;
+    fitConfig?: FillFrame | AspectFit | ExactResolution;
 }
 
 export interface Resolution {
@@ -22,7 +38,7 @@ export interface Resolution {
     height: number;
     aspectRatio: number;
     devicePixelRatio: number;
-    method: 'fill' | 'aspect';
+    method: 'fill' | 'aspect' | 'exact';
 }
 
 export interface FrameData {
@@ -38,6 +54,7 @@ export interface Entity {
     update?: (params?: UpdateParams) => void;
     lateUpdate?: (params?: LateUpdateParams) => void;
     execute?: (params?: ExecuteParams) => void;
+    finish?: (params?: FinishParams) => void;
     destroy?: (params?: DestroyParams) => void;
 }
 
@@ -63,5 +80,7 @@ export interface UpdateParams extends FrameData {}
 export interface LateUpdateParams extends FrameData {}
 
 export interface ExecuteParams extends FrameData {}
+
+export interface FinishParams {}
 
 export interface DestroyParams {}

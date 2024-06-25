@@ -1,4 +1,4 @@
-import {Entity, StartParams, ResizeParams, UpdateParams, LateUpdateParams, ExecuteParams, DestroyParams} from '../core/engine.interface';
+import {Entity, StartParams, ResizeParams, UpdateParams, LateUpdateParams, ExecuteParams, DestroyParams, FinishParams} from '../core/engine.interface';
 
 export class EntityManager {
     constructor() {}
@@ -54,6 +54,13 @@ export class EntityManager {
         for (const entity of this.entities) {
             if (!entity.isActive) continue;
             entity.execute?.(params);
+        }
+    }
+
+    finish(params: FinishParams) {
+        for (const entity of this.entities) {
+            if (!entity.isActive) continue;
+            entity.finish?.(params);
         }
     }
 

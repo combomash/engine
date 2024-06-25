@@ -21,8 +21,8 @@ class Engine {
     entityManager!: EntityManager;
 
     private clock!: Clock;
-    private mode: I.Mode = 'runtime';
     private frameData!: I.FrameData;
+    private runMode: I.Mode = 'runtime';
 
     private isActive: boolean = false;
     private isDestroyed: boolean = false;
@@ -38,7 +38,7 @@ class Engine {
         this.needsResize = true;
     };
 
-    async init({css, canvas, aspectRatio, devicePixelRatio, debounceResizeMs, canToggleFullscreen, keepCanvasOnDestroy, runConfig}: I.InitConfig = {}) {
+    async init({css, canvas, debounceResizeMs, canToggleFullscreen, keepCanvasOnDestroy, runConfig, fitConfig}: I.InitConfig = {}) {
         if (this.isInitialized) throw new Error(E.IS_INITIALIZED);
 
         const CSS = document.createElement('style');
@@ -54,9 +54,10 @@ class Engine {
         this.#resolution = {
             width: window.innerWidth,
             height: window.innerHeight,
-            aspectRatio: aspectRatio ?? window.innerWidth / window.innerHeight,
-            devicePixelRatio: devicePixelRatio ?? (window.devicePixelRatio || 1),
-            method: aspectRatio ? 'aspect' : 'fill',
+            aspectRatio: window.innerWidth / window.innerHeight,
+            devicePixelRatio: window.devicePixelRatio || 1,
+            method: 'fill',
+            ...fitConfig,
         };
 
         this.canToggleFullscreen = canToggleFullscreen ?? true;
@@ -67,8 +68,8 @@ class Engine {
         this.entityManager = new EntityManager();
 
         if (runConfig) {
-            this.mode = runConfig.mode;
-            if (this.mode === 'frame') {
+            this.runMode = runConfig.mode;
+            if (this.runMode === 'frame') {
                 if ('framerate' in runConfig && 'startFrame' in runConfig) {
                     const {framerate, startFrame} = runConfig;
                     if (!Number.isInteger(startFrame)) throw Error('startFrame must be an integer');
@@ -106,8 +107,9 @@ class Engine {
 
     private start() {
         this.isActive = true;
+        this.needsResize = true;
         this.entityManager.start({});
-        if (this.mode === 'runtime') this.clock.start();
+        if (this.runMode === 'runtime') this.clock.start();
         window.requestAnimationFrame(() => {
             this.tick();
         });
@@ -119,8 +121,9 @@ class Engine {
         this.update();
         this.lateUpdate();
         this.execute();
+        this.finish();
 
-        if (this.isActive && this.mode === 'runtime') {
+        if (this.isActive && this.runMode === 'runtime') {
             window.requestAnimationFrame(() => {
                 this.tick();
             });
@@ -135,27 +138,27 @@ class Engine {
     private resize() {
         this.needsResize = false;
 
-        const width = window.innerWidth;
-        const height = window.innerHeight;
-        const aspectRatio = this.#resolution.method === 'aspect' ? this.#resolution.aspectRatio : width / height;
-        const devicePixelRatio = this.#resolution.devicePixelRatio;
+        const {method, width, height, aspectRatio, devicePixelRatio} = this.#resolution;
 
-        const DIM = {
-            width: height * aspectRatio >= width ? width : height * aspectRatio,
-            height: width / aspectRatio >= height ? height : width / aspectRatio,
+        const w = method === 'exact' ? width : window.innerWidth;
+        const h = method === 'exact' ? height : window.innerHeight;
+        const d = method === 'exact' ? 1 : devicePixelRatio;
+        const a = method === 'aspect' ? aspectRatio : w / h;
+
+        const resolution = {
+            width: h * a >= w ? w : h * a,
+            height: w / a >= h ? h : w / a,
         };
 
-        this.#resolution.width = DIM.width;
-        this.#resolution.height = DIM.height;
+        this.#resolution.width = resolution.width;
+        this.#resolution.height = resolution.height;
 
-        this.#canvas.width = this.#resolution.width * devicePixelRatio;
-        this.#canvas.height = this.#resolution.height * devicePixelRatio;
-        this.#canvas.style.width = DIM.width + 'px';
-        this.#canvas.style.height = DIM.height + 'px';
+        this.#canvas.width = this.#resolution.width * d;
+        this.#canvas.height = this.#resolution.height * d;
+        this.#canvas.style.width = resolution.width + 'px';
+        this.#canvas.style.height = resolution.height + 'px';
 
-        const params = {resolution: this.#resolution};
-
-        this.entityManager.resize(params);
+        this.entityManager.resize({resolution: this.#resolution});
     }
 
     isFullscreen() {
@@ -213,11 +216,16 @@ class Engine {
         this.entityManager.execute(this.frameData);
     }
 
+    private finish() {
+        this.entityManager.finish({});
+    }
+
     private destroy() {
         this.isDestroyed = true;
         window.removeEventListener('resize', this.handleResize);
         this.entityManager?.destroy({});
         this.clock?.destroy();
+
         if (!this.keepCanvasOnDestroy) this.#canvas?.remove();
     }
 }
