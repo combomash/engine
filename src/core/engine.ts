@@ -1,6 +1,6 @@
 import {Clock} from './clock';
 import {Utils} from '../helpers/utils';
-import {Configuration} from './config';
+import {Configuration} from './configuration';
 import {EntityManager} from '../managers/entity-manager';
 import {InputsHandler} from '../interaction/inputs-handler';
 
@@ -70,16 +70,16 @@ class Engine {
 
         this.entityManager = new EntityManager();
 
-        if (this.config.runMethod === 'frames') {
-            if ('framerate' in this.config.runConfig && 'startFrame' in this.config.runConfig) {
-                const {framerate, startFrame} = this.config.runConfig;
-                if (!Number.isInteger(startFrame)) throw Error('startFrame must be an integer');
+        if (this.config.runConfig.method === 'frames') {
+            if ('framerate' in this.config.runConfig && 'frame' in this.config.runConfig) {
+                const {framerate, frame} = this.config.runConfig;
+                if (!Number.isInteger(frame)) throw Error('frame must be an integer');
                 const msPerFrame = 1000 / framerate;
-                const elapsedMs = msPerFrame * startFrame;
+                const elapsedMs = msPerFrame * frame;
                 this.clock.setInitialElapsedTime(elapsedMs);
                 this.doShutdown = true;
             } else {
-                throw Error('framerate (fps) and startFrame (int) are required for "frame" runConfig');
+                throw Error('framerate (fps) and frame (int) are required for "frame" runConfig');
             }
         }
 
@@ -109,7 +109,7 @@ class Engine {
         this.isActive = true;
         this.needsResize = true;
         this.entityManager.start();
-        if (this.config.runMethod === 'realtime') this.clock.start();
+        if (this.config.runConfig.method === 'realtime') this.clock.start();
         window.requestAnimationFrame(() => {
             this.tick();
         });
@@ -123,7 +123,7 @@ class Engine {
         this.execute();
         this.finish();
 
-        if (this.isActive && this.config.runMethod === 'realtime') {
+        if (this.isActive && this.config.runConfig.method === 'realtime') {
             window.requestAnimationFrame(() => {
                 this.tick();
             });
@@ -138,7 +138,8 @@ class Engine {
     private resize() {
         this.needsResize = false;
 
-        const {method, width, height, aspectRatio, devicePixelRatio} = this.#resolution;
+        const {method} = this.config.fitConfig;
+        const {width, height, aspectRatio, devicePixelRatio} = this.#resolution;
 
         const w = method === 'exact' ? width : window.innerWidth;
         const h = method === 'exact' ? height : window.innerHeight;

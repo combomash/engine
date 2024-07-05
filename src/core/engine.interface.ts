@@ -1,27 +1,25 @@
-export type Mode = 'realtime' | 'frames';
-
-export interface RunRealtime {
+export interface Realtime {
     method: 'realtime';
 }
 
-export interface RunFrames {
+export interface Frame {
     method: 'frames';
     framerate: number;
-    startFrame: number;
+    frame: number;
 }
 
-export interface FitFillFrame {
+export interface FillWindow {
     method: 'fill';
     devicePixelRatio?: number;
 }
 
-export interface FitAspectRatio {
+export interface FitToAspectRatio {
     method: 'aspect';
     aspectRatio?: number;
     devicePixelRatio?: number;
 }
 
-export interface FitExactResolution {
+export interface ExactResolution {
     method: 'exact';
     width: number;
     height: number;
@@ -33,8 +31,8 @@ export interface ConfigParams {
     debounceResizeMs?: number;
     canToggleFullscreen?: boolean;
     keepCanvasOnDestroy?: boolean;
-    runConfig?: RunRealtime | RunFrames;
-    fitConfig?: FitFillFrame | FitAspectRatio | FitExactResolution;
+    runConfig?: Realtime | Frame;
+    fitConfig?: FillWindow | FitToAspectRatio | ExactResolution;
 }
 
 export interface Resolution {
@@ -42,7 +40,6 @@ export interface Resolution {
     height: number;
     aspectRatio: number;
     devicePixelRatio: number;
-    method: 'fill' | 'aspect' | 'exact';
 }
 
 export interface FrameData {
