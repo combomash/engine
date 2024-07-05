@@ -22,7 +22,7 @@ class Engine {
     }
 
     entityManager!: EntityManager;
-    inputHandler!: InputsHandler;
+    inputsHandler!: InputsHandler;
 
     private config!: Configuration;
 
@@ -66,9 +66,9 @@ class Engine {
 
         this.clock = new Clock();
 
-        this.entityManager = new EntityManager();
+        this.inputsHandler = new InputsHandler({target: window});
 
-        this.inputHandler = new InputsHandler({target: this.canvas});
+        this.entityManager = new EntityManager();
 
         if (this.config.runMethod === 'frames') {
             if ('framerate' in this.config.runConfig && 'startFrame' in this.config.runConfig) {
@@ -205,10 +205,12 @@ class Engine {
             resolution: this.resolution,
         };
 
+        this.inputsHandler.update();
         this.entityManager.update(this.frameData);
     }
 
     private lateUpdate() {
+        this.inputsHandler.lateUpdate();
         this.entityManager.lateUpdate(this.frameData);
     }
 
@@ -223,8 +225,8 @@ class Engine {
     private destroy() {
         this.isDestroyed = true;
         window.removeEventListener('resize', this.handleResize);
-        this.inputHandler.destroy();
         this.entityManager.destroy();
+        this.inputsHandler.destroy();
         this.clock?.destroy();
 
         if (!this.config.keepCanvasOnDestroy) this.#canvas?.remove();
