@@ -9,6 +9,11 @@ export class EntityManager {
         if (this.entities.includes(entity)) {
             return false;
         }
+
+        if (!Object.hasOwn(entity, 'isActive')) {
+            entity.isActive = true;
+        }
+
         this.entities.push(entity);
         return true;
     }

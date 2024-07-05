@@ -52,7 +52,7 @@ export interface FrameData {
 }
 
 export interface Entity {
-    isActive: boolean;
+    isActive?: boolean;
     start?: (params?: StartParams) => void;
     resize?: (params?: ResizeParams) => void;
     update?: (params?: UpdateParams) => void;
