@@ -22,49 +22,49 @@ export class EntityManager {
         return false;
     }
 
-    start(params: StartParams) {
+    start(params?: StartParams) {
         for (const entity of this.entities) {
             if (!entity.isActive) continue;
             entity.start?.(params);
         }
     }
 
-    resize(params: ResizeParams) {
+    resize(params?: ResizeParams) {
         for (const entity of this.entities) {
             if (!entity.isActive) continue;
             entity.resize?.(params);
         }
     }
 
-    update(params: UpdateParams) {
+    update(params?: UpdateParams) {
         for (const entity of this.entities) {
             if (!entity.isActive) continue;
             entity.update?.(params);
         }
     }
 
-    lateUpdate(params: LateUpdateParams) {
+    lateUpdate(params?: LateUpdateParams) {
         for (const entity of this.entities) {
             if (!entity.isActive) continue;
             entity.lateUpdate?.(params);
         }
     }
 
-    execute(params: ExecuteParams) {
+    execute(params?: ExecuteParams) {
         for (const entity of this.entities) {
             if (!entity.isActive) continue;
             entity.execute?.(params);
         }
     }
 
-    finish(params: FinishParams) {
+    finish(params?: FinishParams) {
         for (const entity of this.entities) {
             if (!entity.isActive) continue;
             entity.finish?.(params);
         }
     }
 
-    destroy(params: DestroyParams) {
+    destroy(params?: DestroyParams) {
         for (let i = this.entities.length - 1; i >= 0; i--) {
             this.entities[i].isActive = false;
             this.entities[i].destroy?.(params);

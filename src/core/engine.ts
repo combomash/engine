@@ -1,6 +1,7 @@
 import {Clock} from './clock';
 import {Utils} from '../helpers/utils';
 import {EntityManager} from '../managers/entity-manager';
+import {InputsHandler} from '../interaction/inputs-handler';
 
 import * as I from './engine.interface';
 import * as E from './engine.errors';
@@ -19,6 +20,7 @@ class Engine {
     }
 
     entityManager!: EntityManager;
+    inputHandler!: InputsHandler;
 
     private clock!: Clock;
     private frameData!: I.FrameData;
@@ -67,6 +69,8 @@ class Engine {
 
         this.entityManager = new EntityManager();
 
+        this.inputHandler = new InputsHandler({target: this.canvas});
+
         if (runConfig) {
             this.runMode = runConfig.mode;
             if (this.runMode === 'frame') {
@@ -108,7 +112,7 @@ class Engine {
     private start() {
         this.isActive = true;
         this.needsResize = true;
-        this.entityManager.start({});
+        this.entityManager.start();
         if (this.runMode === 'runtime') this.clock.start();
         window.requestAnimationFrame(() => {
             this.tick();
@@ -217,13 +221,14 @@ class Engine {
     }
 
     private finish() {
-        this.entityManager.finish({});
+        this.entityManager.finish();
     }
 
     private destroy() {
         this.isDestroyed = true;
         window.removeEventListener('resize', this.handleResize);
-        this.entityManager?.destroy({});
+        this.inputHandler.destroy();
+        this.entityManager.destroy();
         this.clock?.destroy();
 
         if (!this.keepCanvasOnDestroy) this.#canvas?.remove();
