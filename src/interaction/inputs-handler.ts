@@ -37,6 +37,10 @@ export class InputsHandler implements Entity {
         this.target = target;
     }
 
+    static create({target}: {target: Target}) {
+        return new InputsHandler({target});
+    }
+
     private handleKeyDown = (e: Event | KeyboardEvent): void => {
         if (e instanceof KeyboardEvent) {
             const {key} = e;
