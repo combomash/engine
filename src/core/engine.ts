@@ -24,7 +24,7 @@ class Engine {
 
     private clock!: Clock;
     private frameData!: I.FrameData;
-    private runMode: I.Mode = 'runtime';
+    private runMode: I.Mode = 'realtime';
 
     private isActive: boolean = false;
     private isDestroyed: boolean = false;
@@ -40,7 +40,7 @@ class Engine {
         this.needsResize = true;
     };
 
-    async init({css, canvas, debounceResizeMs, canToggleFullscreen, keepCanvasOnDestroy, runConfig, fitConfig}: I.InitConfig = {}) {
+    async init({css, canvas, debounceResizeMs, canToggleFullscreen, keepCanvasOnDestroy, runConfig, fitConfig}: I.ConfigParams = {}) {
         if (this.isInitialized) throw new Error(E.IS_INITIALIZED);
 
         const CSS = document.createElement('style');
@@ -72,8 +72,8 @@ class Engine {
         this.inputHandler = new InputsHandler({target: this.canvas});
 
         if (runConfig) {
-            this.runMode = runConfig.mode;
-            if (this.runMode === 'frame') {
+            this.runMode = runConfig.method;
+            if (this.runMode === 'frames') {
                 if ('framerate' in runConfig && 'startFrame' in runConfig) {
                     const {framerate, startFrame} = runConfig;
                     if (!Number.isInteger(startFrame)) throw Error('startFrame must be an integer');
@@ -113,7 +113,7 @@ class Engine {
         this.isActive = true;
         this.needsResize = true;
         this.entityManager.start();
-        if (this.runMode === 'runtime') this.clock.start();
+        if (this.runMode === 'realtime') this.clock.start();
         window.requestAnimationFrame(() => {
             this.tick();
         });
@@ -127,7 +127,7 @@ class Engine {
         this.execute();
         this.finish();
 
-        if (this.isActive && this.runMode === 'runtime') {
+        if (this.isActive && this.runMode === 'realtime') {
             window.requestAnimationFrame(() => {
                 this.tick();
             });
