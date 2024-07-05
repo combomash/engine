@@ -33,8 +33,16 @@ describe('Engine', () => {
     });
 
     describe('after calling initialization (no arguments passed)', () => {
-        beforeEach(() => {
+        let engine: Engine | null;
+
+        beforeAll(() => {
+            engine = new Engine();
             engine!.init();
+        });
+
+        afterAll(() => {
+            engine!.shutdown();
+            engine = null;
         });
 
         test('canvas should be created', () => {
