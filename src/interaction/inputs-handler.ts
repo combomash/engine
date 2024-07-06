@@ -18,8 +18,6 @@ class TargetRegistrar extends Registrar {
 }
 
 export class InputsHandler implements Entity {
-    isActive: boolean = true;
-
     private target: Target;
 
     private lock: boolean = false;

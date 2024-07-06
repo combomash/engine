@@ -1,4 +1,4 @@
-import {InputsHandler} from '../src';
+import {InputsHandler} from '../src/interaction/inputs-handler';
 
 describe('Input Handler', () => {
     let div: HTMLElement;

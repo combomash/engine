@@ -1,9 +1,12 @@
 import {Clock} from './clock';
 import {Utils} from '../helpers/utils';
+import {Configuration} from './configuration';
 import {EntityManager} from '../managers/entity-manager';
+import {InputsHandler} from '../interaction/inputs-handler';
 
-import * as I from './engine.interface';
-import * as E from './engine.errors';
+import {Resolution, FrameData, ConfigParams} from './engine.interface';
+
+import * as ERR from './engine.errors';
 
 class Engine {
     constructor() {}
@@ -13,23 +16,23 @@ class Engine {
         return this.#canvas;
     }
 
-    #resolution!: I.Resolution;
+    #resolution!: Resolution;
     get resolution() {
         return this.#resolution;
     }
 
     entityManager!: EntityManager;
+    inputsHandler!: InputsHandler;
+
+    private config!: Configuration;
 
     private clock!: Clock;
-    private frameData!: I.FrameData;
-    private runMode: I.Mode = 'runtime';
+    private frameData!: FrameData;
 
     private isActive: boolean = false;
     private isDestroyed: boolean = false;
     private needsResize: boolean = false;
     private isInitialized: boolean = false;
-    private canToggleFullscreen!: boolean;
-    private keepCanvasOnDestroy!: boolean;
     private doShutdown: boolean = false;
 
     private handleResize!: () => void;
@@ -38,17 +41,19 @@ class Engine {
         this.needsResize = true;
     };
 
-    async init({css, canvas, debounceResizeMs, canToggleFullscreen, keepCanvasOnDestroy, runConfig, fitConfig}: I.InitConfig = {}) {
-        if (this.isInitialized) throw new Error(E.IS_INITIALIZED);
+    async init(params: ConfigParams = {}) {
+        if (this.isInitialized) throw new Error(ERR.IS_INITIALIZED);
+
+        this.config = new Configuration(params);
 
         const CSS = document.createElement('style');
-        CSS.innerHTML = `*{margin:0;padding:0;overflow:clip;background:#000;height:100%;}body{display:flex;justify-content:center;align-items:center;}${css ?? ''}`;
+        CSS.innerHTML = `*{margin:0;padding:0;overflow:clip;background:#000;height:100%;}body{display:flex;justify-content:center;align-items:center;}${this.config.css ?? ''}`;
         document.body.appendChild(CSS);
 
-        this.handleResize = Utils.debounce(this.setNeedsResize.bind(this), debounceResizeMs ?? 0);
+        this.handleResize = Utils.debounce(this.setNeedsResize.bind(this), this.config.debounceResizeMs);
         window.addEventListener('resize', this.handleResize);
 
-        this.#canvas = canvas ?? document.createElement('canvas');
+        this.#canvas = this.config.canvas ?? document.createElement('canvas');
         document.body.appendChild(this.#canvas);
 
         this.#resolution = {
@@ -56,30 +61,25 @@ class Engine {
             height: window.innerHeight,
             aspectRatio: window.innerWidth / window.innerHeight,
             devicePixelRatio: window.devicePixelRatio || 1,
-            method: 'fill',
-            ...fitConfig,
+            ...this.config.fitConfig,
         };
-
-        this.canToggleFullscreen = canToggleFullscreen ?? true;
-        this.keepCanvasOnDestroy = keepCanvasOnDestroy ?? false;
 
         this.clock = new Clock();
 
+        this.inputsHandler = new InputsHandler({target: window});
+
         this.entityManager = new EntityManager();
 
-        if (runConfig) {
-            this.runMode = runConfig.mode;
-            if (this.runMode === 'frame') {
-                if ('framerate' in runConfig && 'startFrame' in runConfig) {
-                    const {framerate, startFrame} = runConfig;
-                    if (!Number.isInteger(startFrame)) throw Error('startFrame must be an integer');
-                    const msPerFrame = 1000 / framerate;
-                    const elapsedMs = msPerFrame * startFrame;
-                    this.clock.setInitialElapsedTime(elapsedMs);
-                    this.doShutdown = true;
-                } else {
-                    throw Error('framerate (fps) and startFrame (int) are required for "frame" runConfig');
-                }
+        if (this.config.runConfig.method === 'frames') {
+            if ('framerate' in this.config.runConfig && 'frame' in this.config.runConfig) {
+                const {framerate, frame} = this.config.runConfig;
+                if (!Number.isInteger(frame)) throw Error('frame must be an integer');
+                const msPerFrame = 1000 / framerate;
+                const elapsedMs = msPerFrame * frame;
+                this.clock.setInitialElapsedTime(elapsedMs);
+                this.doShutdown = true;
+            } else {
+                throw Error('framerate (fps) and frame (int) are required for "frame" runConfig');
             }
         }
 
@@ -91,9 +91,9 @@ class Engine {
     private resolve: () => void = () => {};
 
     async run() {
-        if (!this.isInitialized) throw new Error(E.NOT_INITIALIZED);
-        if (this.isDestroyed) throw new Error(E.IS_DESTROYED);
-        if (this.isActive) throw new Error(E.IS_RUNNING);
+        if (!this.isInitialized) throw new Error(ERR.NOT_INITIALIZED);
+        if (this.isDestroyed) throw new Error(ERR.IS_DESTROYED);
+        if (this.isActive) throw new Error(ERR.IS_RUNNING);
         return new Promise<void>(resolve => {
             this.resolve = resolve;
             this.start();
@@ -108,8 +108,8 @@ class Engine {
     private start() {
         this.isActive = true;
         this.needsResize = true;
-        this.entityManager.start({});
-        if (this.runMode === 'runtime') this.clock.start();
+        this.entityManager.start();
+        if (this.config.runConfig.method === 'realtime') this.clock.start();
         window.requestAnimationFrame(() => {
             this.tick();
         });
@@ -123,7 +123,7 @@ class Engine {
         this.execute();
         this.finish();
 
-        if (this.isActive && this.runMode === 'runtime') {
+        if (this.isActive && this.config.runConfig.method === 'realtime') {
             window.requestAnimationFrame(() => {
                 this.tick();
             });
@@ -138,7 +138,8 @@ class Engine {
     private resize() {
         this.needsResize = false;
 
-        const {method, width, height, aspectRatio, devicePixelRatio} = this.#resolution;
+        const {method} = this.config.fitConfig;
+        const {width, height, aspectRatio, devicePixelRatio} = this.#resolution;
 
         const w = method === 'exact' ? width : window.innerWidth;
         const h = method === 'exact' ? height : window.innerHeight;
@@ -171,7 +172,7 @@ class Engine {
     }
 
     toggleFullscreen() {
-        if (!this.canToggleFullscreen) return;
+        if (!this.config.canToggleFullscreen) return;
 
         if (this.isFullscreen()) {
             if (document.documentElement.requestFullscreen) {
@@ -205,10 +206,12 @@ class Engine {
             resolution: this.resolution,
         };
 
+        this.inputsHandler.update();
         this.entityManager.update(this.frameData);
     }
 
     private lateUpdate() {
+        this.inputsHandler.lateUpdate();
         this.entityManager.lateUpdate(this.frameData);
     }
 
@@ -217,16 +220,17 @@ class Engine {
     }
 
     private finish() {
-        this.entityManager.finish({});
+        this.entityManager.finish();
     }
 
     private destroy() {
         this.isDestroyed = true;
         window.removeEventListener('resize', this.handleResize);
-        this.entityManager?.destroy({});
+        this.entityManager.destroy();
+        this.inputsHandler.destroy();
         this.clock?.destroy();
 
-        if (!this.keepCanvasOnDestroy) this.#canvas?.remove();
+        if (!this.config.keepCanvasOnDestroy) this.#canvas?.remove();
     }
 }
 
