@@ -26,6 +26,11 @@ class Engine {
 
     private config!: Configuration;
 
+    get seed() {
+        if (this.config) return this.config.seed;
+        else return undefined;
+    }
+
     private clock!: Clock;
     private frameData!: FrameData;
 
