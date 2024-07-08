@@ -36,6 +36,31 @@ describe('Random', () => {
         }).toThrow();
     });
 
+    test('generateSeed() produces valid integers', () => {
+        iters(() => {
+            const v = Random.generateSeed();
+            expect(v).toBeGreaterThanOrEqual(10 ** 9);
+            expect(v).toBeLessThanOrEqual(10 ** 10 - 1);
+            expect(Number.isInteger(v)).toBeTruthy();
+        });
+    });
+
+    test('generateSeed() produces valid integers with length of 32 digits', () => {
+        iters(() => {
+            const v = Random.generateSeed(32);
+            expect(v).toBeGreaterThanOrEqual(10 ** 31);
+            expect(v).toBeLessThanOrEqual(10 ** 32 - 1);
+            expect(Number.isInteger(v)).toBeTruthy();
+        });
+    });
+
+    test('generateHashSeed() produces a valid hash formatted string', () => {
+        iters(() => {
+            const v = Random.generateHashSeed();
+            expect(v).toMatch(/^0x[0-9a-f]{64}$/);
+        });
+    });
+
     for (const prng of PRNG_TYPE) {
         describe(`using PRNG: ${prng}`, () => {
             for (const seed of seeds) {

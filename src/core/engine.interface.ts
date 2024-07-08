@@ -33,6 +33,7 @@ export interface ConfigParams {
     keepCanvasOnDestroy?: boolean;
     runConfig?: Realtime | Frame;
     fitConfig?: FillWindow | FitToAspectRatio | ExactResolution;
+    seed?: string | number;
 }
 
 export interface Resolution {

@@ -1,7 +1,9 @@
+import {Random} from '../stochastic/random';
 import {ConfigParams, FitToAspectRatio, ExactResolution, FillWindow, Frame, Realtime} from './engine.interface';
 
 export class Configuration {
     css: string;
+    seed: string | number;
     canvas: HTMLCanvasElement | undefined;
     debounceResizeMs: number;
 
@@ -25,7 +27,7 @@ export class Configuration {
             }
         }
 
-        const {css, canvas, debounceResizeMs, canToggleFullscreen, keepCanvasOnDestroy, runConfig, fitConfig} = params;
+        const {css, canvas, debounceResizeMs, canToggleFullscreen, keepCanvasOnDestroy, runConfig, fitConfig, seed} = params;
 
         this.css = css ?? '';
         this.canvas = canvas;
@@ -34,5 +36,6 @@ export class Configuration {
         this.keepCanvasOnDestroy = keepCanvasOnDestroy ?? false;
         this.runConfig = runConfig ?? this.runConfig;
         this.fitConfig = fitConfig ?? this.fitConfig;
+        this.seed = seed ?? Random.generateHashSeed();
     }
 }

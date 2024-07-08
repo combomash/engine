@@ -26,6 +26,11 @@ class Engine {
 
     private config!: Configuration;
 
+    get seed() {
+        if (this.config) return this.config.seed;
+        else return undefined;
+    }
+
     private clock!: Clock;
     private frameData!: FrameData;
 
@@ -221,6 +226,10 @@ class Engine {
 
     private finish() {
         this.entityManager.finish();
+
+        if (this.config.runConfig.method === 'frames') {
+            window.parent.postMessage({type: 'status', data: 'done'}, '*');
+        }
     }
 
     private destroy() {

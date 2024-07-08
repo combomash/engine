@@ -33,6 +33,21 @@ export class Random {
         }
     }
 
+    // Return a random number
+    static generateSeed(digits: number = 10) {
+        const min = Math.pow(10, digits - 1);
+        const max = Math.pow(10, digits) - 1;
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // Returns a random hash formatted string
+    static generateHashSeed() {
+        const chars = '0123456789abcdef';
+        let hash = '0x';
+        for (let i = 64; i > 0; --i) hash += chars[Math.floor(Math.random() * chars.length)];
+        return hash;
+    }
+
     // Returns a number in [0, 1)
     dec(): number {
         return this.prng.nextNumber();
