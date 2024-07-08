@@ -1,7 +1,7 @@
 {
     "name": "@combomash/engine",
-    "description": "An opinionated TypeScript engine for orchestrating canvas-based render pipelines, supporting diverse web rendering techniques and enabling real-time interactivity, multi-pass rendering, and procedural art creation.",
-    "version": "0.6.0",
+    "description": "A TypeScript engine for constructing canvas-based render pipelines, offering a framework for rendering realtime or frame based outputs.",
+    "version": "0.6.1",
     "main": "dist/index.js",
     "module": "dist/index.mjs",
     "types": "dist/index.d.ts",
@@ -36,9 +36,9 @@
         "jest": "^29.7.0",
         "jest-environment-jsdom": "^29.7.0",
         "prettier": "^3.3.2",
-        "ts-jest": "^29.1.5",
+        "ts-jest": "^29.2.0",
         "ts-node": "^10.9.2",
         "tsup": "^8.1.0",
-        "typescript": "^5.4.5"
+        "typescript": "^5.5.3"
     }
 }
