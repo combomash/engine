@@ -221,6 +221,10 @@ class Engine {
 
     private finish() {
         this.entityManager.finish();
+
+        if (this.config.runConfig.method === 'frames') {
+            window.parent.postMessage({type: 'status', data: 'done'}, '*');
+        }
     }
 
     private destroy() {
