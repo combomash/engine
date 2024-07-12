@@ -27,13 +27,14 @@ export interface ExactResolution {
 
 export interface ConfigParams {
     css?: string;
+    seed?: string | number;
     canvas?: HTMLCanvasElement;
     debounceResizeMs?: number;
     canToggleFullscreen?: boolean;
     keepCanvasOnDestroy?: boolean;
     runConfig?: Realtime | Frame;
     fitConfig?: FillWindow | FitToAspectRatio | ExactResolution;
-    seed?: string | number;
+    export?: () => Promise<void>;
 }
 
 export interface Resolution {

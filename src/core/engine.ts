@@ -51,6 +51,10 @@ class Engine {
 
         this.config = new Configuration(params);
 
+        this.clock = new Clock();
+        this.inputsHandler = new InputsHandler({target: window});
+        this.entityManager = new EntityManager();
+
         const CSS = document.createElement('style');
         CSS.innerHTML = `*{margin:0;padding:0;overflow:clip;background:#000;height:100%;}body{display:flex;justify-content:center;align-items:center;}${this.config.css ?? ''}`;
         document.body.appendChild(CSS);
@@ -69,12 +73,6 @@ class Engine {
             ...this.config.fitConfig,
         };
 
-        this.clock = new Clock();
-
-        this.inputsHandler = new InputsHandler({target: window});
-
-        this.entityManager = new EntityManager();
-
         if (this.config.runConfig.method === 'frames') {
             if ('framerate' in this.config.runConfig && 'frame' in this.config.runConfig) {
                 const {framerate, frame} = this.config.runConfig;
@@ -92,6 +90,8 @@ class Engine {
 
         this.isInitialized = true;
     }
+
+    export: () => Promise<void> = async () => {};
 
     private resolve: () => void = () => {};
 
@@ -120,7 +120,7 @@ class Engine {
         });
     }
 
-    private tick() {
+    private async tick() {
         this.clock.tick();
 
         this.update();
@@ -132,7 +132,11 @@ class Engine {
             window.requestAnimationFrame(() => {
                 this.tick();
             });
+            return;
         }
+
+        await this.export();
+        window.parent.postMessage({type: 'status', data: 'done'}, '*');
 
         if (this.doShutdown) {
             this.resolve();
@@ -226,10 +230,6 @@ class Engine {
 
     private finish() {
         this.entityManager.finish();
-
-        if (this.config.runConfig.method === 'frames') {
-            window.parent.postMessage({type: 'status', data: 'done'}, '*');
-        }
     }
 
     private destroy() {
