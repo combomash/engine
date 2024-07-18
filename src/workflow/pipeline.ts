@@ -1,6 +1,7 @@
 import {Node} from './node';
 import {Utils} from '../helpers/utils';
 import {Registrar} from '../helpers/registrar';
+import {FrameData} from '../core/engine.interface';
 
 interface Params {
     label?: string;
@@ -143,11 +144,11 @@ export class Pipeline {
         this.#outputs = {};
     }
 
-    execute() {
+    execute(frameData?: FrameData) {
         if (this.#hasExecuted) return;
 
         for (const node of this.execNodes) {
-            node.execute(this.#globals);
+            node.execute({...this.#globals, ...frameData});
         }
 
         for (const node of this.#nodes) {
