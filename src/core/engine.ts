@@ -66,10 +66,10 @@ class Engine {
         document.body.appendChild(this.#canvas);
 
         this.#resolution = {
-            width: window.innerWidth,
-            height: window.innerHeight,
-            aspectRatio: window.innerWidth / window.innerHeight,
+            width: 1,
+            height: 1,
             devicePixelRatio: window.devicePixelRatio || 1,
+            aspectRatio: window.innerWidth / window.innerHeight,
             ...this.config.fitConfig,
         };
 
@@ -160,11 +160,11 @@ class Engine {
             height: w / a >= h ? h : w / a,
         };
 
-        this.#resolution.width = resolution.width;
-        this.#resolution.height = resolution.height;
+        this.#resolution.width = resolution.width * d;
+        this.#resolution.height = resolution.height * d;
 
-        this.#canvas.width = this.#resolution.width * d;
-        this.#canvas.height = this.#resolution.height * d;
+        this.#canvas.width = this.#resolution.width;
+        this.#canvas.height = this.#resolution.height;
         this.#canvas.style.width = resolution.width + 'px';
         this.#canvas.style.height = resolution.height + 'px';
 

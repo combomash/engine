@@ -52,12 +52,12 @@ describe('Engine', () => {
         });
 
         describe('resolution parameters...', () => {
-            test('width should be the window innerWidth (100)', () => {
-                expect(engine!.resolution.width).toBe(100);
+            test('width should be the window innerWidth x devicePixelRatio (200)', () => {
+                expect(engine!.resolution.width).toBe(200);
             });
 
-            test('height should be the window innerHeight (50)', () => {
-                expect(engine!.resolution.height).toBe(50);
+            test('height should be the window innerHeight x devicePixelRatio (100)', () => {
+                expect(engine!.resolution.height).toBe(100);
             });
 
             test('aspectRatio should be window.innerHeight / window.innerWidth (2)', () => {
