@@ -157,6 +157,7 @@ class Engine {
         const h = method === 'exact' ? height : window.innerHeight;
         const d = method === 'exact' ? 1 : devicePixelRatio;
         const a = method === 'aspect' ? aspectRatio : w / h;
+        const p = method !== 'exact' ? this.#config.fitConfig.padding ?? 0 : 0;
 
         const resolution = {
             width: h * a >= w ? w : h * a,
@@ -165,6 +166,12 @@ class Engine {
 
         this.#resolution.width = resolution.width * d;
         this.#resolution.height = resolution.height * d;
+
+        if (p > 0 && p <= 0.5) {
+            const min = Math.min(this.#resolution.width, this.#resolution.height);
+            this.#resolution.width -= min * p;
+            this.#resolution.height -= min * p;
+        }
 
         this.#canvas.width = this.#resolution.width;
         this.#canvas.height = this.#resolution.height;

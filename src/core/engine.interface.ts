@@ -11,12 +11,14 @@ export interface Frame {
 export interface FillWindow {
     method: 'fill';
     devicePixelRatio?: number;
+    padding?: number;
 }
 
 export interface FitToAspectRatio {
     method: 'aspect';
     aspectRatio?: number;
     devicePixelRatio?: number;
+    padding?: number;
 }
 
 export interface ExactResolution {
