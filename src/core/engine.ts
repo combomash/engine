@@ -24,11 +24,14 @@ class Engine {
     entityManager!: EntityManager;
     inputsHandler!: InputsHandler;
 
-    private config!: Configuration;
+    #config!: Configuration;
+
+    get config() {
+        return this.#config;
+    }
 
     get seed() {
-        if (this.config) return this.config.seed;
-        else return undefined;
+        return this.#config.seed;
     }
 
     private clock!: Clock;
@@ -49,20 +52,20 @@ class Engine {
     async init(params: ConfigParams = {}) {
         if (this.isInitialized) throw new Error(ERR.IS_INITIALIZED);
 
-        this.config = new Configuration(params);
+        this.#config = new Configuration(params);
 
         this.clock = new Clock();
         this.inputsHandler = new InputsHandler({target: window});
         this.entityManager = new EntityManager();
 
         const CSS = document.createElement('style');
-        CSS.innerHTML = `*{margin:0;padding:0;overflow:clip;background:#000;height:100%;}body{display:flex;justify-content:center;align-items:center;}${this.config.css ?? ''}`;
+        CSS.innerHTML = `*{margin:0;padding:0;overflow:clip;background:#000;height:100%;}body{display:flex;justify-content:center;align-items:center;}${this.#config.css ?? ''}`;
         document.body.appendChild(CSS);
 
-        this.handleResize = Utils.debounce(this.setNeedsResize.bind(this), this.config.debounceResizeMs);
+        this.handleResize = Utils.debounce(this.setNeedsResize.bind(this), this.#config.debounceResizeMs);
         window.addEventListener('resize', this.handleResize);
 
-        this.#canvas = this.config.canvas ?? document.createElement('canvas');
+        this.#canvas = this.#config.canvas ?? document.createElement('canvas');
         document.body.appendChild(this.#canvas);
 
         this.#resolution = {
@@ -70,12 +73,12 @@ class Engine {
             height: 1,
             devicePixelRatio: window.devicePixelRatio || 1,
             aspectRatio: window.innerWidth / window.innerHeight,
-            ...this.config.fitConfig,
+            ...this.#config.fitConfig,
         };
 
-        if (this.config.runConfig.method === 'frames') {
-            if ('framerate' in this.config.runConfig && 'frame' in this.config.runConfig) {
-                const {framerate, frame} = this.config.runConfig;
+        if (this.#config.runConfig.method === 'frames') {
+            if ('framerate' in this.#config.runConfig && 'frame' in this.#config.runConfig) {
+                const {framerate, frame} = this.#config.runConfig;
                 if (!Number.isInteger(frame)) throw Error('frame must be an integer');
                 const msPerFrame = 1000 / framerate;
                 const elapsedMs = msPerFrame * frame;
@@ -114,7 +117,7 @@ class Engine {
         this.isActive = true;
         this.needsResize = true;
         this.entityManager.start();
-        if (this.config.runConfig.method === 'realtime') this.clock.start();
+        if (this.#config.runConfig.method === 'realtime') this.clock.start();
         window.requestAnimationFrame(() => {
             this.tick();
         });
@@ -128,7 +131,7 @@ class Engine {
         this.execute();
         this.finish();
 
-        if (this.isActive && this.config.runConfig.method === 'realtime') {
+        if (this.isActive && this.#config.runConfig.method === 'realtime') {
             window.requestAnimationFrame(() => {
                 this.tick();
             });
@@ -147,7 +150,7 @@ class Engine {
     private resize() {
         this.needsResize = false;
 
-        const {method} = this.config.fitConfig;
+        const {method} = this.#config.fitConfig;
         const {width, height, aspectRatio, devicePixelRatio} = this.#resolution;
 
         const w = method === 'exact' ? width : window.innerWidth;
@@ -181,7 +184,7 @@ class Engine {
     }
 
     toggleFullscreen() {
-        if (!this.config.canToggleFullscreen) return;
+        if (!this.#config.canToggleFullscreen) return;
 
         if (this.isFullscreen()) {
             if (document.documentElement.requestFullscreen) {
@@ -239,7 +242,7 @@ class Engine {
         this.inputsHandler.destroy();
         this.clock?.destroy();
 
-        if (!this.config.keepCanvasOnDestroy) this.#canvas?.remove();
+        if (!this.#config.keepCanvasOnDestroy) this.#canvas?.remove();
     }
 }
 

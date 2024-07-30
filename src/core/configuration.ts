@@ -3,7 +3,7 @@ import {ConfigParams, FitToAspectRatio, ExactResolution, FillWindow, Frame, Real
 
 export class Configuration {
     css: string;
-    seed: string | number;
+    seed: string | number | undefined;
     canvas: HTMLCanvasElement | undefined;
     debounceResizeMs: number;
 
@@ -12,6 +12,8 @@ export class Configuration {
 
     runConfig: Realtime | Frame = {method: 'realtime'};
     fitConfig: FillWindow | FitToAspectRatio | ExactResolution = {method: 'fill'};
+
+    userConfig: {[key: string]: any};
 
     constructor(params: ConfigParams) {
         const urlParams: URLSearchParams = new URLSearchParams(window.location.search);
@@ -27,15 +29,17 @@ export class Configuration {
             }
         }
 
-        const {css, canvas, debounceResizeMs, canToggleFullscreen, keepCanvasOnDestroy, runConfig, fitConfig, seed} = params;
+        const {css, canvas, debounceResizeMs, canToggleFullscreen, keepCanvasOnDestroy, seed, runConfig, fitConfig, ...userConfig} = params;
 
         this.css = css ?? '';
         this.canvas = canvas;
         this.debounceResizeMs = debounceResizeMs ?? 0;
         this.canToggleFullscreen = canToggleFullscreen ?? true;
         this.keepCanvasOnDestroy = keepCanvasOnDestroy ?? false;
+        this.seed = seed ?? Random.generateHashSeed();
+
         this.runConfig = runConfig ?? this.runConfig;
         this.fitConfig = fitConfig ?? this.fitConfig;
-        this.seed = seed ?? Random.generateHashSeed();
+        this.userConfig = {...userConfig};
     }
 }
