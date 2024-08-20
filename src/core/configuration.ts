@@ -1,5 +1,5 @@
 import {Random} from '../stochastic/random';
-import {ConfigParams, FitToAspectRatio, ExactResolution, FillWindow, Frame, Realtime} from './engine.interface';
+import {ConfigParams, FitToAspectRatio, ExactDimensions, FillWindow, Frame, Realtime} from './engine.interface';
 
 export class Configuration {
     css: string;
@@ -11,7 +11,7 @@ export class Configuration {
     keepCanvasOnDestroy: boolean;
 
     runConfig: Realtime | Frame = {method: 'realtime'};
-    fitConfig: FillWindow | FitToAspectRatio | ExactResolution = {method: 'fill'};
+    fitConfig: FillWindow | FitToAspectRatio | ExactDimensions = {method: 'fill'};
 
     userConfig: {[key: string]: any};
 
