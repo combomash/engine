@@ -21,10 +21,11 @@ export interface FitToAspectRatio {
     padding?: number;
 }
 
-export interface ExactResolution {
+export interface ExactDimensions {
     method: 'exact';
     width: number;
     height: number;
+    devicePixelRatio?: number;
 }
 
 export interface ConfigParams {
@@ -35,7 +36,7 @@ export interface ConfigParams {
     canToggleFullscreen?: boolean;
     keepCanvasOnDestroy?: boolean;
     runConfig?: Realtime | Frame;
-    fitConfig?: FillWindow | FitToAspectRatio | ExactResolution;
+    fitConfig?: FillWindow | FitToAspectRatio | ExactDimensions;
     export?: () => Promise<void>;
 }
 

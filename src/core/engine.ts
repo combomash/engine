@@ -151,13 +151,13 @@ class Engine {
         this.needsResize = false;
 
         const {method} = this.#config.fitConfig;
-        const {width, height, aspectRatio, devicePixelRatio} = this.#resolution;
+        const {aspectRatio, devicePixelRatio} = this.#resolution;
 
-        const w = method === 'exact' ? width : window.innerWidth;
-        const h = method === 'exact' ? height : window.innerHeight;
-        const d = method === 'exact' ? 1 : devicePixelRatio;
-        const a = method === 'aspect' ? aspectRatio : w / h;
+        const w = method === 'exact' ? this.#config.fitConfig.width : window.innerWidth;
+        const h = method === 'exact' ? this.#config.fitConfig.height : window.innerHeight;
+        const d = method === 'exact' ? this.#config.fitConfig.devicePixelRatio ?? 1 : devicePixelRatio;
         const p = method !== 'exact' ? this.#config.fitConfig.padding ?? 0 : 0;
+        const a = method === 'aspect' ? aspectRatio : w / h;
 
         const resolution = {
             width: h * a >= w ? w : h * a,
@@ -166,6 +166,8 @@ class Engine {
 
         this.#resolution.width = resolution.width * d;
         this.#resolution.height = resolution.height * d;
+        this.#resolution.aspectRatio = resolution.width / resolution.height;
+        this.#resolution.devicePixelRatio = d;
 
         if (p > 0 && p <= 0.5) {
             const min = Math.min(this.#resolution.width, this.#resolution.height);
