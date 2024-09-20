@@ -1,13 +1,10 @@
-export * from './core/engine.interface';
-
+export * from './types';
 export {Engine} from './core/engine';
 export {Clock} from './core/clock';
-
-export {Node} from './workflow/node';
-export {Pipeline} from './workflow/pipeline';
-
+export {Registrar} from './helpers/registrar';
 export {InputsHandler} from './interaction/inputs-handler';
-
+export {EntityManager} from './managers/entity-manager';
 export {Random} from './stochastic/random';
-
+export {Pipeline} from './workflow/pipeline';
+export {Node} from './workflow/node';
 export {Utils} from './helpers/utils';
