@@ -1,22 +1,27 @@
 import {Random} from '../stochastic/random';
-import {ConfigParams, FitToAspectRatio, ExactDimensions, FillWindow, RenderMethod} from './engine.interface';
+import {ConfigParams, RenderMethod, FitMode} from './engine.interface';
 
 export class Configuration {
     css: string;
     seed: string | number | undefined;
     canvas: HTMLCanvasElement | undefined;
-    debounceResizeMs: number;
-
     canToggleFullscreen: boolean;
     keepCanvasOnDestroy: boolean;
+    debounceResizeMs: number;
 
-    renderMethod: RenderMethod = 'realtime';
+    fitMode: FitMode;
+
+    width: number;
+    height: number;
+    aspectRatio: number;
+    devicePixelRatio: number;
+    canvasPadding: number;
+
+    renderMethod: RenderMethod;
 
     frame: number;
     samples: number;
     framerate: number;
-
-    fitConfig: FillWindow | FitToAspectRatio | ExactDimensions = {method: 'fill'};
 
     userConfig: {[key: string]: any};
 
@@ -41,11 +46,17 @@ export class Configuration {
             canToggleFullscreen,
             keepCanvasOnDestroy,
             seed,
+            fitMode,
+            width,
+            height,
+            aspectRatio,
+            devicePixelRatio,
+            canvasPadding,
             renderMethod,
             frame,
             samples,
             framerate,
-            fitConfig,
+
             ...userConfig
         } = params;
 
@@ -56,13 +67,19 @@ export class Configuration {
         this.keepCanvasOnDestroy = keepCanvasOnDestroy ?? false;
         this.seed = seed ?? Random.generateHashSeed();
 
-        this.renderMethod = this.renderMethod ?? renderMethod;
+        this.fitMode = fitMode ?? 'fill';
+        this.width = width ?? window.innerWidth;
+        this.height = height ?? window.innerHeight;
+        this.aspectRatio = aspectRatio ?? this.width / this.height;
+        this.devicePixelRatio = devicePixelRatio ?? (window.devicePixelRatio || 1);
+        this.canvasPadding = canvasPadding ?? 0;
+
+        this.renderMethod = renderMethod ?? 'realtime';
 
         this.frame = frame ?? 0;
         this.samples = samples ?? 1;
         this.framerate = framerate ?? 30;
 
-        this.fitConfig = fitConfig ?? this.fitConfig;
         this.userConfig = {...userConfig};
     }
 }

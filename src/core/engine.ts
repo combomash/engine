@@ -69,24 +69,22 @@ class Engine {
         document.body.appendChild(this.#canvas);
 
         this.#resolution = {
-            width: 1,
-            height: 1,
-            devicePixelRatio: window.devicePixelRatio || 1,
-            aspectRatio: window.innerWidth / window.innerHeight,
-            ...this.#config.fitConfig,
+            width: this.#config.width,
+            height: this.#config.height,
+            devicePixelRatio: this.#config.devicePixelRatio,
+            aspectRatio: this.#config.aspectRatio,
         };
 
         if (this.#config.renderMethod === 'offline') {
             const {framerate, frame} = this.#config;
-            if (framerate && frame) {
-                if (!Number.isInteger(frame)) throw Error('frame must be an integer');
-                const msPerFrame = 1000 / framerate;
-                const elapsedMs = msPerFrame * frame;
-                this.clock.setInitialElapsedTime(elapsedMs);
-                this.doShutdown = true;
-            } else {
-                throw Error('framerate (fps) and frame (int) are required for "offline" renders');
-            }
+
+            if (!Number.isInteger(frame)) throw Error(ERR.MUST_BE_INT.replace('%s', 'frame'));
+            if (!Number.isInteger(framerate)) throw Error(ERR.MUST_BE_INT.replace('%s', 'framerate'));
+
+            const msPerFrame = 1000 / framerate;
+            const elapsedMs = msPerFrame * frame;
+            this.clock.setInitialElapsedTime(elapsedMs);
+            this.doShutdown = true;
         }
 
         this.resize();
@@ -150,14 +148,14 @@ class Engine {
     private resize() {
         this.needsResize = false;
 
-        const {method} = this.#config.fitConfig;
+        const {fitMode} = this.#config;
         const {aspectRatio, devicePixelRatio} = this.#resolution;
 
-        const w = method === 'exact' ? this.#config.fitConfig.width : window.innerWidth;
-        const h = method === 'exact' ? this.#config.fitConfig.height : window.innerHeight;
-        const d = method === 'exact' ? this.#config.fitConfig.devicePixelRatio ?? 1 : devicePixelRatio;
-        const p = method !== 'exact' ? this.#config.fitConfig.padding ?? 0 : 0;
-        const a = method === 'aspect' ? aspectRatio : w / h;
+        const w = fitMode === 'exact' ? this.#config.width : window.innerWidth;
+        const h = fitMode === 'exact' ? this.#config.height : window.innerHeight;
+        const d = fitMode === 'exact' ? this.#config.devicePixelRatio ?? 1 : devicePixelRatio;
+        const p = fitMode !== 'exact' ? this.#config.canvasPadding ?? 0 : 0;
+        const a = fitMode === 'aspect' ? aspectRatio : w / h;
 
         const resolution = {
             width: h * a >= w ? w : h * a,

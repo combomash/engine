@@ -1,42 +1,27 @@
+export type FitMode = 'fill' | 'aspect' | 'exact';
 export type RenderMethod = 'realtime' | 'offline';
-
-export interface FillWindow {
-    method: 'fill';
-    devicePixelRatio?: number;
-    padding?: number;
-}
-
-export interface FitToAspectRatio {
-    method: 'aspect';
-    aspectRatio?: number;
-    devicePixelRatio?: number;
-    padding?: number;
-}
-
-export interface ExactDimensions {
-    method: 'exact';
-    width: number;
-    height: number;
-    devicePixelRatio?: number;
-}
 
 export interface ConfigParams {
     css?: string;
     seed?: string | number;
     canvas?: HTMLCanvasElement;
-    debounceResizeMs?: number;
     canToggleFullscreen?: boolean;
     keepCanvasOnDestroy?: boolean;
+    debounceResizeMs?: number;
+
+    fitMode?: FitMode;
+
+    width?: number;
+    height?: number;
+    aspectRatio?: number;
+    devicePixelRatio?: number;
+    canvasPadding?: number;
 
     renderMethod?: RenderMethod;
 
-    // Offline Render
     frame?: number;
     samples?: number;
     framerate?: number;
-
-    fitConfig?: FillWindow | FitToAspectRatio | ExactDimensions;
-    export?: () => Promise<void>;
 }
 
 export interface Resolution {
