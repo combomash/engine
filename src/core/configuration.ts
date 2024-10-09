@@ -5,9 +5,11 @@ export class Configuration {
     css: string;
     seed: string | number | undefined;
     canvas: HTMLCanvasElement | undefined;
+
     canToggleFullscreen: boolean;
     keepCanvasOnDestroy: boolean;
     debounceResizeMs: number;
+    logRenderInfo: boolean;
 
     fitMode: FitMode;
 
@@ -41,11 +43,12 @@ export class Configuration {
 
         const {
             css,
+            seed,
             canvas,
-            debounceResizeMs,
             canToggleFullscreen,
             keepCanvasOnDestroy,
-            seed,
+            debounceResizeMs,
+            logRenderInfo,
             fitMode,
             width,
             height,
@@ -56,21 +59,22 @@ export class Configuration {
             frame,
             samples,
             framerate,
-
             ...userConfig
         } = params;
 
         this.css = css ?? '';
+        this.seed = seed ?? Random.generateHashSeed();
         this.canvas = canvas;
-        this.debounceResizeMs = debounceResizeMs ?? 0;
+
         this.canToggleFullscreen = canToggleFullscreen ?? true;
         this.keepCanvasOnDestroy = keepCanvasOnDestroy ?? false;
-        this.seed = seed ?? Random.generateHashSeed();
+        this.debounceResizeMs = debounceResizeMs ?? 0;
+        this.logRenderInfo = logRenderInfo ?? false;
 
         this.fitMode = fitMode ?? 'fill';
         this.width = width ?? window.innerWidth;
         this.height = height ?? window.innerHeight;
-        this.aspectRatio = aspectRatio ?? this.width / this.height;
+        this.aspectRatio = aspectRatio ?? window.innerWidth / window.innerHeight;
         this.devicePixelRatio = devicePixelRatio ?? (window.devicePixelRatio || 1);
         this.canvasPadding = canvasPadding ?? 0;
 

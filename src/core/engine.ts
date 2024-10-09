@@ -7,6 +7,7 @@ import {InputsHandler} from '../interaction/inputs-handler';
 import {Resolution, FrameData, ConfigParams} from './engine.interface';
 
 import * as ERR from './engine.errors';
+import {calculateFPS} from '../helpers/fps';
 
 class Engine {
     constructor() {}
@@ -35,19 +36,20 @@ class Engine {
     }
 
     private clock!: Clock;
-    private frameData!: FrameData;
+    private frameData: FrameData = {
+        deltaTime: 0,
+        elapsedTime: 0,
+        resolution: this.#resolution,
+        sample: 0,
+        frame: 0,
+        fps: 0,
+    };
 
     private isActive: boolean = false;
     private isDestroyed: boolean = false;
     private needsResize: boolean = false;
     private isInitialized: boolean = false;
     private doShutdown: boolean = false;
-
-    private currentSample: number = 0;
-
-    get sample() {
-        return this.currentSample + 1;
-    }
 
     private handleResize!: () => void;
 
@@ -135,24 +137,10 @@ class Engine {
         this.finish();
 
         if (this.isActive) {
-            if (this.#config.renderMethod === 'realtime') {
-                window.requestAnimationFrame(() => {
-                    this.tick();
-                });
-                return;
-            }
-
-            if (this.#config.renderMethod === 'offline') {
-                this.currentSample++;
-                if (this.currentSample >= this.#config.samples) {
-                    this.doShutdown = true;
-                } else {
-                    window.requestAnimationFrame(() => {
-                        this.tick();
-                    });
-                    return;
-                }
-            }
+            window.requestAnimationFrame(() => {
+                this.tick();
+            });
+            return;
         }
 
         await this.export();
@@ -172,8 +160,8 @@ class Engine {
 
         const w = fitMode === 'exact' ? this.#config.width : window.innerWidth;
         const h = fitMode === 'exact' ? this.#config.height : window.innerHeight;
-        const d = fitMode === 'exact' ? this.#config.devicePixelRatio ?? 1 : devicePixelRatio;
-        const p = fitMode !== 'exact' ? this.#config.canvasPadding ?? 0 : 0;
+        const d = fitMode === 'exact' ? (this.#config.devicePixelRatio ?? 1) : devicePixelRatio;
+        const p = fitMode !== 'exact' ? (this.#config.canvasPadding ?? 0) : 0;
         const a = fitMode === 'aspect' ? aspectRatio : w / h;
 
         const resolution = {
@@ -197,7 +185,7 @@ class Engine {
         this.#canvas.style.width = resolution.width + 'px';
         this.#canvas.style.height = resolution.height + 'px';
 
-        this.entityManager.resize({resolution: this.#resolution});
+        this.entityManager.resize(this.#resolution);
     }
 
     isFullscreen() {
@@ -239,10 +227,33 @@ class Engine {
         if (this.needsResize) this.resize();
 
         this.frameData = {
+            ...this.frameData,
             deltaTime: this.clock.delta,
             elapsedTime: this.clock.elapsed,
             resolution: this.resolution,
         };
+
+        if (this.#config.renderMethod === 'realtime') {
+            this.frameData.frame++;
+
+            if (this.#config.logRenderInfo) {
+                this.frameData.fps = calculateFPS(this.frameData.deltaTime);
+                console.log(`FPS: ${this.frameData.fps}, Frame: ${this.frameData.frame}`);
+            }
+        }
+
+        if (this.#config.renderMethod === 'offline') {
+            this.frameData.sample++;
+            this.frameData.frame = this.#config.frame;
+
+            if (this.#config.logRenderInfo) {
+                console.log(`Sample: ${this.frameData.sample} / ${this.#config.samples}`);
+            }
+
+            if (this.frameData.sample >= this.#config.samples) {
+                this.shutdown();
+            }
+        }
 
         this.inputsHandler.update();
         this.entityManager.update(this.frameData);

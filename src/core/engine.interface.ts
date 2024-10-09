@@ -8,6 +8,7 @@ export interface ConfigParams {
     canToggleFullscreen?: boolean;
     keepCanvasOnDestroy?: boolean;
     debounceResizeMs?: number;
+    logRenderInfo?: boolean;
 
     fitMode?: FitMode;
 
@@ -35,17 +36,20 @@ export interface FrameData {
     deltaTime: number;
     elapsedTime: number;
     resolution: Resolution;
+    sample: number;
+    frame: number;
+    fps: number;
 }
 
 export interface Entity {
     isActive?: boolean;
-    start?: (params?: StartParams) => void;
-    resize?: (params?: ResizeParams) => void;
-    update?: (params?: UpdateParams) => void;
-    lateUpdate?: (params?: LateUpdateParams) => void;
-    execute?: (params?: ExecuteParams) => void;
-    finish?: (params?: FinishParams) => void;
-    destroy?: (params?: DestroyParams) => void;
+    start?: () => void;
+    resize?: (resolution: Resolution) => void;
+    update?: (frameData: FrameData) => void;
+    lateUpdate?: (frameData: FrameData) => void;
+    execute?: (frameData: FrameData) => void;
+    finish?: () => void;
+    destroy?: () => void;
 }
 
 export interface Command {
@@ -58,19 +62,3 @@ export interface Bind {
     command: Command;
     state?: true | null;
 }
-
-export interface StartParams {}
-
-export interface ResizeParams {
-    resolution: Resolution;
-}
-
-export interface UpdateParams extends FrameData {}
-
-export interface LateUpdateParams extends FrameData {}
-
-export interface ExecuteParams extends FrameData {}
-
-export interface FinishParams {}
-
-export interface DestroyParams {}
