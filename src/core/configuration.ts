@@ -1,5 +1,5 @@
 import {Random} from '../stochastic/random';
-import {ConfigParams, FitToAspectRatio, ExactDimensions, FillWindow, Frame, Realtime} from './engine.interface';
+import {ConfigParams, FitToAspectRatio, ExactDimensions, FillWindow, RenderMethod} from './engine.interface';
 
 export class Configuration {
     css: string;
@@ -10,7 +10,12 @@ export class Configuration {
     canToggleFullscreen: boolean;
     keepCanvasOnDestroy: boolean;
 
-    runConfig: Realtime | Frame = {method: 'realtime'};
+    renderMethod: RenderMethod = 'realtime';
+
+    frame: number;
+    samples: number;
+    framerate: number;
+
     fitConfig: FillWindow | FitToAspectRatio | ExactDimensions = {method: 'fill'};
 
     userConfig: {[key: string]: any};
@@ -29,7 +34,20 @@ export class Configuration {
             }
         }
 
-        const {css, canvas, debounceResizeMs, canToggleFullscreen, keepCanvasOnDestroy, seed, runConfig, fitConfig, ...userConfig} = params;
+        const {
+            css,
+            canvas,
+            debounceResizeMs,
+            canToggleFullscreen,
+            keepCanvasOnDestroy,
+            seed,
+            renderMethod,
+            frame,
+            samples,
+            framerate,
+            fitConfig,
+            ...userConfig
+        } = params;
 
         this.css = css ?? '';
         this.canvas = canvas;
@@ -38,7 +56,12 @@ export class Configuration {
         this.keepCanvasOnDestroy = keepCanvasOnDestroy ?? false;
         this.seed = seed ?? Random.generateHashSeed();
 
-        this.runConfig = runConfig ?? this.runConfig;
+        this.renderMethod = this.renderMethod ?? renderMethod;
+
+        this.frame = frame ?? 0;
+        this.samples = samples ?? 1;
+        this.framerate = framerate ?? 30;
+
         this.fitConfig = fitConfig ?? this.fitConfig;
         this.userConfig = {...userConfig};
     }

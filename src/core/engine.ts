@@ -76,16 +76,16 @@ class Engine {
             ...this.#config.fitConfig,
         };
 
-        if (this.#config.runConfig.method === 'frames') {
-            if ('framerate' in this.#config.runConfig && 'frame' in this.#config.runConfig) {
-                const {framerate, frame} = this.#config.runConfig;
+        if (this.#config.renderMethod === 'offline') {
+            const {framerate, frame} = this.#config;
+            if (framerate && frame) {
                 if (!Number.isInteger(frame)) throw Error('frame must be an integer');
                 const msPerFrame = 1000 / framerate;
                 const elapsedMs = msPerFrame * frame;
                 this.clock.setInitialElapsedTime(elapsedMs);
                 this.doShutdown = true;
             } else {
-                throw Error('framerate (fps) and frame (int) are required for "frame" runConfig');
+                throw Error('framerate (fps) and frame (int) are required for "offline" renders');
             }
         }
 
@@ -117,7 +117,7 @@ class Engine {
         this.isActive = true;
         this.needsResize = true;
         this.entityManager.start();
-        if (this.#config.runConfig.method === 'realtime') this.clock.start();
+        if (this.#config.renderMethod === 'realtime') this.clock.start();
         window.requestAnimationFrame(() => {
             this.tick();
         });
@@ -131,7 +131,7 @@ class Engine {
         this.execute();
         this.finish();
 
-        if (this.isActive && this.#config.runConfig.method === 'realtime') {
+        if (this.isActive && this.#config.renderMethod === 'realtime') {
             window.requestAnimationFrame(() => {
                 this.tick();
             });

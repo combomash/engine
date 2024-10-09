@@ -1,12 +1,4 @@
-export interface Realtime {
-    method: 'realtime';
-}
-
-export interface Frame {
-    method: 'frames';
-    framerate: number;
-    frame: number;
-}
+export type RenderMethod = 'realtime' | 'offline';
 
 export interface FillWindow {
     method: 'fill';
@@ -35,7 +27,14 @@ export interface ConfigParams {
     debounceResizeMs?: number;
     canToggleFullscreen?: boolean;
     keepCanvasOnDestroy?: boolean;
-    runConfig?: Realtime | Frame;
+
+    renderMethod?: RenderMethod;
+
+    // Offline Render
+    frame?: number;
+    samples?: number;
+    framerate?: number;
+
     fitConfig?: FillWindow | FitToAspectRatio | ExactDimensions;
     export?: () => Promise<void>;
 }
