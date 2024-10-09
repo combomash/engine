@@ -247,7 +247,10 @@ class Engine {
             this.frameData.frame = this.#config.frame;
 
             if (this.#config.logRenderInfo) {
-                console.log(`Sample: ${this.frameData.sample} / ${this.#config.samples}`);
+                let numDigits = `${this.#config.samples}`.length;
+                let samplePadded = this.frameData.sample.toString().padStart(numDigits, ' ');
+                let percentDone = Math.floor(((this.frameData.sample - 1) / this.#config.samples) * 100);
+                console.log(`Render > Sample: ${samplePadded} / ${this.#config.samples} - ${percentDone}%`);
             }
 
             if (this.frameData.sample >= this.#config.samples) {
