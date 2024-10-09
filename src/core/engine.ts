@@ -43,6 +43,12 @@ class Engine {
     private isInitialized: boolean = false;
     private doShutdown: boolean = false;
 
+    private currentSample: number = 0;
+
+    get sample() {
+        return this.currentSample + 1;
+    }
+
     private handleResize!: () => void;
 
     private setNeedsResize = () => {
@@ -84,7 +90,6 @@ class Engine {
             const msPerFrame = 1000 / framerate;
             const elapsedMs = msPerFrame * frame;
             this.clock.setInitialElapsedTime(elapsedMs);
-            this.doShutdown = true;
         }
 
         this.resize();
@@ -129,11 +134,25 @@ class Engine {
         this.execute();
         this.finish();
 
-        if (this.isActive && this.#config.renderMethod === 'realtime') {
-            window.requestAnimationFrame(() => {
-                this.tick();
-            });
-            return;
+        if (this.isActive) {
+            if (this.#config.renderMethod === 'realtime') {
+                window.requestAnimationFrame(() => {
+                    this.tick();
+                });
+                return;
+            }
+
+            if (this.#config.renderMethod === 'offline') {
+                this.currentSample++;
+                if (this.currentSample >= this.#config.samples) {
+                    this.doShutdown = true;
+                } else {
+                    window.requestAnimationFrame(() => {
+                        this.tick();
+                    });
+                    return;
+                }
+            }
         }
 
         await this.export();
