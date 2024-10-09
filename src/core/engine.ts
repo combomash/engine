@@ -8,6 +8,7 @@ import {Resolution, FrameData, ConfigParams} from './engine.interface';
 
 import * as ERR from './engine.errors';
 import {calculateFPS} from '../helpers/fps';
+import {logSampleProgress} from '../helpers/logging';
 
 class Engine {
     constructor() {}
@@ -247,10 +248,7 @@ class Engine {
             this.frameData.frame = this.#config.frame;
 
             if (this.#config.logRenderInfo) {
-                let numDigits = `${this.#config.samples}`.length;
-                let samplePadded = this.frameData.sample.toString().padStart(numDigits, ' ');
-                let percentDone = Math.floor(((this.frameData.sample - 1) / this.#config.samples) * 100);
-                console.log(`Render > Sample: ${samplePadded} / ${this.#config.samples} - ${percentDone}%`);
+                logSampleProgress(this.frameData.sample, this.#config.samples);
             }
 
             if (this.frameData.sample >= this.#config.samples) {
