@@ -1,6 +1,6 @@
 import {PRNG, PRNG_TYPE, SFC32, SFC64, SFC128} from './prng';
 
-interface Params {
+export interface RandomParams {
     seed: string | number;
     prng?: PRNG_TYPE;
 }
@@ -8,7 +8,7 @@ interface Params {
 export class Random {
     private prng: PRNG;
 
-    constructor({seed, prng}: Params) {
+    constructor({seed, prng}: RandomParams) {
         let hash = 0;
         if (typeof seed === 'string') {
             for (let i = 0; i < seed.length; i++) {

@@ -1,14 +1,14 @@
 import {Clock} from './clock';
 import {Utils} from '../helpers/utils';
-import {Configuration} from './configuration';
+import {ConfigManager} from '../managers/config-manager';
 import {EntityManager} from '../managers/entity-manager';
 import {InputsHandler} from '../interaction/inputs-handler';
 
-import {Resolution, FrameData, ConfigParams} from './engine.interface';
+import {Resolution, FrameData, Configuration} from './engine.interface';
 
 import * as ERR from './engine.errors';
 import {calculateFPS} from '../helpers/fps';
-import {logSampleProgress} from '../helpers/logging';
+import {logFrameFPS, logSampleProgress} from '../helpers/logging';
 
 class Engine {
     constructor() {}
@@ -26,7 +26,7 @@ class Engine {
     entityManager!: EntityManager;
     inputsHandler!: InputsHandler;
 
-    #config!: Configuration;
+    #config!: ConfigManager;
 
     get config() {
         return this.#config;
@@ -58,10 +58,10 @@ class Engine {
         this.needsResize = true;
     };
 
-    async init(params: ConfigParams = {}) {
+    async init(params: Configuration = {}) {
         if (this.isInitialized) throw new Error(ERR.IS_INITIALIZED);
 
-        this.#config = new Configuration(params);
+        this.#config = new ConfigManager(params);
 
         this.clock = new Clock();
         this.inputsHandler = new InputsHandler({target: window});
@@ -236,10 +236,10 @@ class Engine {
 
         if (this.#config.renderMethod === 'realtime') {
             this.frameData.frame++;
+            this.frameData.fps = calculateFPS(this.frameData.deltaTime);
 
             if (this.#config.logRenderInfo) {
-                this.frameData.fps = calculateFPS(this.frameData.deltaTime);
-                console.log(`FPS: ${this.frameData.fps}, Frame: ${this.frameData.frame}`);
+                logFrameFPS(this.frameData.frame, this.frameData.fps);
             }
         }
 

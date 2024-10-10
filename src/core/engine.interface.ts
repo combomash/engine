@@ -1,7 +1,7 @@
 export type FitMode = 'fill' | 'aspect' | 'exact';
 export type RenderMethod = 'realtime' | 'offline';
 
-export interface ConfigParams {
+export interface Configuration {
     css?: string;
     seed?: string | number;
     canvas?: HTMLCanvasElement;
@@ -62,3 +62,5 @@ export interface Bind {
     command: Command;
     state?: true | null;
 }
+
+export type Callback = (params?: {[key: string]: any}) => any;

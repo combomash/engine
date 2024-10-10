@@ -1,7 +1,7 @@
 import {Random} from '../stochastic/random';
-import {ConfigParams, RenderMethod, FitMode} from './engine.interface';
+import {Configuration, RenderMethod, FitMode} from '../core/engine.interface';
 
-export class Configuration {
+export class ConfigManager implements Configuration {
     css: string;
     seed: string | number | undefined;
     canvas: HTMLCanvasElement | undefined;
@@ -27,11 +27,12 @@ export class Configuration {
 
     userConfig: {[key: string]: any};
 
-    constructor(params: ConfigParams) {
+    constructor(params: Configuration) {
         const urlParams: URLSearchParams = new URLSearchParams(window.location.search);
 
         if (urlParams.has('config')) {
             const json = urlParams.get('config');
+
             if (json) {
                 const config = JSON.parse(json);
                 params = {

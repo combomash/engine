@@ -1,7 +1,8 @@
-import {Node, NodeCallback} from '../src/workflow/node';
+import {Callback} from '../src/core/engine.interface';
+import {Node} from '../src/workflow/node';
 import {Pipeline} from '../src/workflow/pipeline';
 
-const callback: NodeCallback = () => {};
+const callback: Callback = () => {};
 
 const none = {};
 const globals = {test: 'test'};
