@@ -1,12 +1,11 @@
 import {Registrar} from '../helpers/registrar';
+import {Callback} from '../core/engine.interface';
 
-export type NodeCallback = (params: {[key: string]: any}) => any;
-
-interface Params {
+export interface NodeParams {
     label?: string;
     parents?: Array<Node>;
     children?: Array<Node>;
-    callback: NodeCallback;
+    callback: Callback;
 }
 
 let i = 0;
@@ -27,7 +26,7 @@ class NodeRegistrar extends Registrar {
 export class Node {
     label: string;
 
-    private callback: NodeCallback;
+    private callback: Callback;
 
     #parents: Array<Node> = [];
     get parents() {
@@ -49,7 +48,7 @@ export class Node {
         return this.#output ?? {};
     }
 
-    constructor({label, callback, parents = [], children = []}: Params) {
+    constructor({label, callback, parents = [], children = []}: NodeParams) {
         this.label = label ?? `node_${i}`;
         if (!NodeRegistrar.instance.register(this.label)) {
             throw new Error(`Node ${label} has already been created (must have unique label)`);
@@ -161,7 +160,7 @@ export class Node {
         NodeRegistrar.instance.delist(this.label);
         for (const parent of this.#parents) this.unlinkParent(parent);
         for (const child of this.#children) this.unlinkChild(child);
-        this.callback = ({}) => {
+        this.callback = () => {
             return {};
         };
         this.#hasExecuted = false;

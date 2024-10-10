@@ -3,7 +3,7 @@ import {Utils} from '../helpers/utils';
 import {Registrar} from '../helpers/registrar';
 import {FrameData} from '../core/engine.interface';
 
-interface Params {
+export interface PipelieneParams {
     label?: string;
     nodes: Array<Node>;
     globals?: {[key: string]: any};
@@ -52,7 +52,7 @@ export class Pipeline {
 
     private execNodes: Array<Node> = [];
 
-    constructor({label, nodes = [], globals}: Params) {
+    constructor({label, nodes = [], globals}: PipelieneParams) {
         this.#label = label ?? `pipeline_${i}`;
         this.#globals = globals ?? {};
         for (const node of nodes) this.#nodes.push(node);

@@ -1,4 +1,4 @@
-import {Entity, StartParams, ResizeParams, UpdateParams, LateUpdateParams, ExecuteParams, DestroyParams, FinishParams} from '../core/engine.interface';
+import {Entity, Resolution, FrameData} from '../core/engine.interface';
 
 export class EntityManager {
     constructor() {}
@@ -27,52 +27,52 @@ export class EntityManager {
         return false;
     }
 
-    start(params?: StartParams) {
+    start() {
         for (const entity of this.entities) {
             if (!entity.isActive) continue;
-            entity.start?.(params);
+            entity.start?.();
         }
     }
 
-    resize(params?: ResizeParams) {
+    resize(resolution: Resolution) {
         for (const entity of this.entities) {
             if (!entity.isActive) continue;
-            entity.resize?.(params);
+            entity.resize?.(resolution);
         }
     }
 
-    update(params?: UpdateParams) {
+    update(frameData: FrameData) {
         for (const entity of this.entities) {
             if (!entity.isActive) continue;
-            entity.update?.(params);
+            entity.update?.(frameData);
         }
     }
 
-    lateUpdate(params?: LateUpdateParams) {
+    lateUpdate(frameData: FrameData) {
         for (const entity of this.entities) {
             if (!entity.isActive) continue;
-            entity.lateUpdate?.(params);
+            entity.lateUpdate?.(frameData);
         }
     }
 
-    execute(params?: ExecuteParams) {
+    execute(frameData: FrameData) {
         for (const entity of this.entities) {
             if (!entity.isActive) continue;
-            entity.execute?.(params);
+            entity.execute?.(frameData);
         }
     }
 
-    finish(params?: FinishParams) {
+    finish() {
         for (const entity of this.entities) {
             if (!entity.isActive) continue;
-            entity.finish?.(params);
+            entity.finish?.();
         }
     }
 
-    destroy(params?: DestroyParams) {
+    destroy() {
         for (let i = this.entities.length - 1; i >= 0; i--) {
             this.entities[i].isActive = false;
-            this.entities[i].destroy?.(params);
+            this.entities[i].destroy?.();
         }
     }
 }

@@ -1,12 +1,14 @@
 import {Clock} from './clock';
 import {Utils} from '../helpers/utils';
-import {Configuration} from './configuration';
+import {ConfigManager} from '../managers/config-manager';
 import {EntityManager} from '../managers/entity-manager';
 import {InputsHandler} from '../interaction/inputs-handler';
 
-import {Resolution, FrameData, ConfigParams} from './engine.interface';
+import {Resolution, FrameData, Configuration} from './engine.interface';
 
 import * as ERR from './engine.errors';
+import {calculateFPS} from '../helpers/fps';
+import {logFrameFPS, logRenderTime, logSampleProgress} from '../helpers/logging';
 
 class Engine {
     constructor() {}
@@ -24,7 +26,7 @@ class Engine {
     entityManager!: EntityManager;
     inputsHandler!: InputsHandler;
 
-    #config!: Configuration;
+    #config!: ConfigManager;
 
     get config() {
         return this.#config;
@@ -35,7 +37,15 @@ class Engine {
     }
 
     private clock!: Clock;
-    private frameData!: FrameData;
+    private timer!: Clock;
+    private frameData: FrameData = {
+        deltaTime: 0,
+        elapsedTime: 0,
+        resolution: this.#resolution,
+        sample: 0,
+        frame: 0,
+        fps: 0,
+    };
 
     private isActive: boolean = false;
     private isDestroyed: boolean = false;
@@ -49,12 +59,13 @@ class Engine {
         this.needsResize = true;
     };
 
-    async init(params: ConfigParams = {}) {
+    async init(params: Configuration = {}) {
         if (this.isInitialized) throw new Error(ERR.IS_INITIALIZED);
 
-        this.#config = new Configuration(params);
+        this.#config = new ConfigManager(params);
 
         this.clock = new Clock();
+        this.timer = new Clock();
         this.inputsHandler = new InputsHandler({target: window});
         this.entityManager = new EntityManager();
 
@@ -69,24 +80,21 @@ class Engine {
         document.body.appendChild(this.#canvas);
 
         this.#resolution = {
-            width: 1,
-            height: 1,
-            devicePixelRatio: window.devicePixelRatio || 1,
-            aspectRatio: window.innerWidth / window.innerHeight,
-            ...this.#config.fitConfig,
+            width: this.#config.width,
+            height: this.#config.height,
+            devicePixelRatio: this.#config.devicePixelRatio,
+            aspectRatio: this.#config.aspectRatio,
         };
 
-        if (this.#config.runConfig.method === 'frames') {
-            if ('framerate' in this.#config.runConfig && 'frame' in this.#config.runConfig) {
-                const {framerate, frame} = this.#config.runConfig;
-                if (!Number.isInteger(frame)) throw Error('frame must be an integer');
-                const msPerFrame = 1000 / framerate;
-                const elapsedMs = msPerFrame * frame;
-                this.clock.setInitialElapsedTime(elapsedMs);
-                this.doShutdown = true;
-            } else {
-                throw Error('framerate (fps) and frame (int) are required for "frame" runConfig');
-            }
+        if (this.#config.renderMethod === 'offline') {
+            const {framerate, frame} = this.#config;
+
+            if (!Number.isInteger(frame)) throw Error(ERR.MUST_BE_INT.replace('%s', 'frame'));
+            if (!Number.isInteger(framerate)) throw Error(ERR.MUST_BE_INT.replace('%s', 'framerate'));
+
+            const msPerFrame = 1000 / framerate;
+            const elapsedMs = msPerFrame * frame;
+            this.clock.setInitialElapsedTime(elapsedMs);
         }
 
         this.resize();
@@ -117,7 +125,8 @@ class Engine {
         this.isActive = true;
         this.needsResize = true;
         this.entityManager.start();
-        if (this.#config.runConfig.method === 'realtime') this.clock.start();
+        if (this.#config.renderMethod === 'realtime') this.clock.start();
+        this.timer.start();
         window.requestAnimationFrame(() => {
             this.tick();
         });
@@ -125,13 +134,14 @@ class Engine {
 
     private async tick() {
         this.clock.tick();
+        this.timer.tick();
 
         this.update();
         this.lateUpdate();
         this.execute();
         this.finish();
 
-        if (this.isActive && this.#config.runConfig.method === 'realtime') {
+        if (this.isActive) {
             window.requestAnimationFrame(() => {
                 this.tick();
             });
@@ -140,6 +150,11 @@ class Engine {
 
         await this.export();
         window.parent.postMessage({type: 'status', data: 'done'}, '*');
+
+        if (this.#config.logRenderInfo) {
+            this.timer.tick();
+            logRenderTime('Render > Total Time: ', this.timer.elapsed);
+        }
 
         if (this.doShutdown) {
             this.resolve();
@@ -150,14 +165,14 @@ class Engine {
     private resize() {
         this.needsResize = false;
 
-        const {method} = this.#config.fitConfig;
+        const {fitMode} = this.#config;
         const {aspectRatio, devicePixelRatio} = this.#resolution;
 
-        const w = method === 'exact' ? this.#config.fitConfig.width : window.innerWidth;
-        const h = method === 'exact' ? this.#config.fitConfig.height : window.innerHeight;
-        const d = method === 'exact' ? this.#config.fitConfig.devicePixelRatio ?? 1 : devicePixelRatio;
-        const p = method !== 'exact' ? this.#config.fitConfig.padding ?? 0 : 0;
-        const a = method === 'aspect' ? aspectRatio : w / h;
+        const w = fitMode === 'exact' ? this.#config.width : window.innerWidth;
+        const h = fitMode === 'exact' ? this.#config.height : window.innerHeight;
+        const d = fitMode === 'exact' ? (this.#config.devicePixelRatio ?? 1) : devicePixelRatio;
+        const p = fitMode !== 'exact' ? (this.#config.canvasPadding ?? 0) : 0;
+        const a = fitMode === 'aspect' ? aspectRatio : w / h;
 
         const resolution = {
             width: h * a >= w ? w : h * a,
@@ -180,7 +195,7 @@ class Engine {
         this.#canvas.style.width = resolution.width + 'px';
         this.#canvas.style.height = resolution.height + 'px';
 
-        this.entityManager.resize({resolution: this.#resolution});
+        this.entityManager.resize(this.#resolution);
     }
 
     isFullscreen() {
@@ -222,10 +237,33 @@ class Engine {
         if (this.needsResize) this.resize();
 
         this.frameData = {
+            ...this.frameData,
             deltaTime: this.clock.delta,
             elapsedTime: this.clock.elapsed,
             resolution: this.resolution,
         };
+
+        if (this.#config.renderMethod === 'realtime') {
+            this.frameData.frame++;
+            this.frameData.fps = calculateFPS(this.frameData.deltaTime);
+
+            if (this.#config.logRenderInfo) {
+                logFrameFPS(this.frameData.frame, this.frameData.fps);
+            }
+        }
+
+        if (this.#config.renderMethod === 'offline') {
+            this.frameData.sample++;
+            this.frameData.frame = this.#config.frame;
+
+            if (this.#config.logRenderInfo) {
+                logSampleProgress(this.frameData.sample, this.#config.samples, this.timer.elapsed);
+            }
+
+            if (this.frameData.sample >= this.#config.samples) {
+                this.shutdown();
+            }
+        }
 
         this.inputsHandler.update();
         this.entityManager.update(this.frameData);
@@ -250,6 +288,7 @@ class Engine {
         this.entityManager.destroy();
         this.inputsHandler.destroy();
         this.clock?.destroy();
+        this.timer?.destroy();
 
         if (!this.#config.keepCanvasOnDestroy) this.#canvas?.remove();
     }

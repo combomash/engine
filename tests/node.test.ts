@@ -1,4 +1,5 @@
-import {Node, NodeCallback} from '../src/workflow/node';
+import {Callback} from '../src/core/engine.interface';
+import {Node} from '../src/workflow/node';
 
 /*
 > all nodes return inputs in the output object
@@ -14,15 +15,15 @@ node_6
 */
 
 const globals = {remove: 'remove'};
-export const testNodeCallbacks: Array<NodeCallback> = [
+export const testNodeCallbacks: Array<Callback> = [
     // 0 - passes inputs to outputs
     params => {
-        delete params.remove;
+        delete params!.remove;
         return {...params};
     },
     // 1 - passes inputs to outputs, adds "one"
     params => {
-        delete params.remove;
+        delete params!.remove;
         return {...params, one: 'one'};
     },
     // 2 - returns "two"
