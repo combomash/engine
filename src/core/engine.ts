@@ -8,7 +8,7 @@ import {Resolution, FrameData, Configuration} from './engine.interface';
 
 import * as ERR from './engine.errors';
 import {calculateFPS} from '../helpers/fps';
-import {logFrameFPS, logSampleProgress} from '../helpers/logging';
+import {logFrameFPS, logRenderTime, logSampleProgress} from '../helpers/logging';
 
 class Engine {
     constructor() {}
@@ -37,6 +37,7 @@ class Engine {
     }
 
     private clock!: Clock;
+    private timer!: Clock;
     private frameData: FrameData = {
         deltaTime: 0,
         elapsedTime: 0,
@@ -64,6 +65,7 @@ class Engine {
         this.#config = new ConfigManager(params);
 
         this.clock = new Clock();
+        this.timer = new Clock();
         this.inputsHandler = new InputsHandler({target: window});
         this.entityManager = new EntityManager();
 
@@ -124,6 +126,7 @@ class Engine {
         this.needsResize = true;
         this.entityManager.start();
         if (this.#config.renderMethod === 'realtime') this.clock.start();
+        this.timer.start();
         window.requestAnimationFrame(() => {
             this.tick();
         });
@@ -131,6 +134,7 @@ class Engine {
 
     private async tick() {
         this.clock.tick();
+        this.timer.tick();
 
         this.update();
         this.lateUpdate();
@@ -146,6 +150,11 @@ class Engine {
 
         await this.export();
         window.parent.postMessage({type: 'status', data: 'done'}, '*');
+
+        if (this.#config.logRenderInfo) {
+            this.timer.tick();
+            logRenderTime('Render > Total Time: ', this.timer.elapsed);
+        }
 
         if (this.doShutdown) {
             this.resolve();
@@ -248,7 +257,7 @@ class Engine {
             this.frameData.frame = this.#config.frame;
 
             if (this.#config.logRenderInfo) {
-                logSampleProgress(this.frameData.sample, this.#config.samples);
+                logSampleProgress(this.frameData.sample, this.#config.samples, this.timer.elapsed);
             }
 
             if (this.frameData.sample >= this.#config.samples) {
@@ -279,6 +288,7 @@ class Engine {
         this.entityManager.destroy();
         this.inputsHandler.destroy();
         this.clock?.destroy();
+        this.timer?.destroy();
 
         if (!this.#config.keepCanvasOnDestroy) this.#canvas?.remove();
     }
