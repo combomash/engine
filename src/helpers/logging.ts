@@ -11,7 +11,7 @@ export function logSampleProgress(sample: number, samples: number, elapsedTime: 
     let samplePadded = sample.toString().padStart(numDigits, ' ');
     let percentDone = Math.floor(((sample - 1) / samples) * 100);
     let timeSoFar = formatElapsedTime(elapsedTime);
-    console.log(`Render > Sample: ${samplePadded} / ${samples} | ${timeSoFar} | ${percentDone}%`);
+    console.log(`Render > Sample: ${sample} / ${samples} | ${timeSoFar} | ${percentDone}%`);
 }
 
 export function logFrameFPS(frame: number, fps: number) {
