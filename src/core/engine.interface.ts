@@ -1,9 +1,11 @@
+export type Seed = string | number;
+
 export type FitMode = 'fill' | 'aspect' | 'exact';
 export type RenderMethod = 'realtime' | 'offline';
 
 export interface Configuration {
     css?: string;
-    seed?: string | number;
+    seed: Seed;
     canvas?: HTMLCanvasElement;
     canToggleFullscreen?: boolean;
     keepCanvasOnDestroy?: boolean;

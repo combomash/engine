@@ -1,7 +1,8 @@
+import {Seed} from '../types';
 import {PRNG, PRNG_TYPE, SFC32, SFC64, SFC128} from './prng';
 
 export interface RandomParams {
-    seed: string | number;
+    seed: Seed;
     prng?: PRNG_TYPE;
 }
 

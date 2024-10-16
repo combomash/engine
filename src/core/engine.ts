@@ -1,5 +1,6 @@
 import {Clock} from './clock';
 import {Utils} from '../helpers/utils';
+import {Random} from '../stochastic/random';
 import {ConfigManager} from '../managers/config-manager';
 import {EntityManager} from '../managers/entity-manager';
 import {InputsHandler} from '../interaction/inputs-handler';
@@ -59,7 +60,11 @@ class Engine {
         this.needsResize = true;
     };
 
-    async init(params: Configuration = {}) {
+    async init(
+        params: Configuration = {
+            seed: Random.generateSeed(),
+        },
+    ) {
         if (this.isInitialized) throw new Error(ERR.IS_INITIALIZED);
 
         this.#config = new ConfigManager(params);

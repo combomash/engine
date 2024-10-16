@@ -1,9 +1,9 @@
 import {Random} from '../stochastic/random';
-import {Configuration, RenderMethod, FitMode} from '../core/engine.interface';
+import {Configuration, RenderMethod, FitMode, Seed} from '../core/engine.interface';
 
 export class ConfigManager implements Configuration {
     css: string;
-    seed: string | number | undefined;
+    seed: Seed;
     canvas: HTMLCanvasElement | undefined;
 
     canToggleFullscreen: boolean;
