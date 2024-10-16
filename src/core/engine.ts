@@ -1,6 +1,5 @@
 import {Clock} from './clock';
 import {Utils} from '../helpers/utils';
-import {Random} from '../stochastic/random';
 import {ConfigManager} from '../managers/config-manager';
 import {EntityManager} from '../managers/entity-manager';
 import {InputsHandler} from '../interaction/inputs-handler';
@@ -60,14 +59,10 @@ class Engine {
         this.needsResize = true;
     };
 
-    async init(
-        params: Configuration = {
-            seed: Random.generateSeed(),
-        },
-    ) {
+    async init(params?: Configuration) {
         if (this.isInitialized) throw new Error(ERR.IS_INITIALIZED);
 
-        this.#config = new ConfigManager(params);
+        this.#config = new ConfigManager(params ?? {});
 
         this.clock = new Clock();
         this.timer = new Clock();
@@ -81,7 +76,7 @@ class Engine {
         this.handleResize = Utils.debounce(this.setNeedsResize.bind(this), this.#config.debounceResizeMs);
         window.addEventListener('resize', this.handleResize);
 
-        this.#canvas = this.#config.canvas ?? document.createElement('canvas');
+        this.#canvas = this.#config.canvas;
         document.body.appendChild(this.#canvas);
 
         this.#resolution = {

@@ -4,8 +4,9 @@ export type FitMode = 'fill' | 'aspect' | 'exact';
 export type RenderMethod = 'realtime' | 'offline';
 
 export interface Configuration {
+    seed?: Seed;
+
     css?: string;
-    seed: Seed;
     canvas?: HTMLCanvasElement;
     canToggleFullscreen?: boolean;
     keepCanvasOnDestroy?: boolean;

@@ -2,14 +2,16 @@ import {Seed} from '../types';
 import {PRNG, PRNG_TYPE, SFC32, SFC64, SFC128} from './prng';
 
 export interface RandomParams {
-    seed: Seed;
+    seed?: Seed;
     prng?: PRNG_TYPE;
 }
 
 export class Random {
     private prng: PRNG;
 
-    constructor({seed, prng}: RandomParams) {
+    constructor(params: RandomParams) {
+        const seed = params.seed ?? Random.generateHashSeed();
+
         let hash = 0;
         if (typeof seed === 'string') {
             for (let i = 0; i < seed.length; i++) {
@@ -20,7 +22,7 @@ export class Random {
             hash = seed;
         }
 
-        switch (prng) {
+        switch (params.prng) {
             case 'sfc64':
                 this.prng = new SFC64(hash);
                 break;

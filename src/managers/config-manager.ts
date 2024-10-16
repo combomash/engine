@@ -2,9 +2,10 @@ import {Random} from '../stochastic/random';
 import {Configuration, RenderMethod, FitMode, Seed} from '../core/engine.interface';
 
 export class ConfigManager implements Configuration {
+    seed?: Seed;
+
     css: string;
-    seed: Seed;
-    canvas: HTMLCanvasElement | undefined;
+    canvas: HTMLCanvasElement;
 
     canToggleFullscreen: boolean;
     keepCanvasOnDestroy: boolean;
@@ -63,9 +64,10 @@ export class ConfigManager implements Configuration {
             ...userConfig
         } = params;
 
-        this.css = css ?? '';
         this.seed = seed ?? Random.generateHashSeed();
-        this.canvas = canvas;
+
+        this.css = css ?? '';
+        this.canvas = canvas ?? document.createElement('canvas');
 
         this.canToggleFullscreen = canToggleFullscreen ?? true;
         this.keepCanvasOnDestroy = keepCanvasOnDestroy ?? false;
